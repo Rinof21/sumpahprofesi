@@ -54,6 +54,7 @@ class RoleAndPermissionSeeder extends Seeder
             'curate-gallery',
         ]);
 
-       
+        // Peserta Role
+        Role::firstOrCreate(['name' => 'Peserta']);
     }
 }

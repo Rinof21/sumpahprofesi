@@ -99,6 +99,15 @@ class SumpahProfesiSeeder extends Seeder
         ]);
         $adminDokter->assignRole('Admin Prodi');
 
+        // Also create admin.dokter@fkik.ac.id for test and demo compatibility
+        $adminDokterFkik = User::create([
+            'name' => 'Admin Prodi Dokter',
+            'email' => 'admin.dokter@fkik.ac.id',
+            'password' => Hash::make('password'),
+            'study_program_id' => $prodiDokter->id,
+        ]);
+        $adminDokterFkik->assignRole('Admin Prodi');
+
         $adminApoteker = User::create([
             'name' => 'Admin Prodi Apoteker',
             'email' => 'admin.apoteker@fkik.ac.id',
@@ -115,8 +124,88 @@ class SumpahProfesiSeeder extends Seeder
         ]);
         $adminNers->assignRole('Admin Prodi');
 
-        
+        // 4. Create Active Oath Periods
+        $periodDokter = OathPeriod::create([
+            'study_program_id' => $prodiDokter->id,
+            'name' => 'Sumpah Dokter Periode II 2026',
+            'slug' => 'sumpah-dokter-periode-ii-2026',
+            'event_date' => '2026-08-15',
+            'quarter_code' => 'Q2',
+            'access_token' => 'TK-DOKTER26',
+            'status' => 'active',
+            'is_locked' => false,
+        ]);
 
-       
+        $periodApoteker = OathPeriod::create([
+            'study_program_id' => $prodiApoteker->id,
+            'name' => 'Sumpah Apoteker Periode II 2026',
+            'slug' => 'sumpah-apoteker-periode-ii-2026',
+            'event_date' => '2026-08-20',
+            'quarter_code' => 'Q2',
+            'access_token' => 'TK-APOTEKER26',
+            'status' => 'active',
+            'is_locked' => false,
+        ]);
+
+        $periodNers = OathPeriod::create([
+            'study_program_id' => $prodiNers->id,
+            'name' => 'Sumpah Ners Periode II 2026',
+            'slug' => 'sumpah-ners-periode-ii-2026',
+            'event_date' => '2026-08-25',
+            'quarter_code' => 'Q2',
+            'access_token' => 'TK-NERS26',
+            'status' => 'active',
+            'is_locked' => false,
+        ]);
+
+        // 5. Create Peserta User & Oath Candidates
+        $userPeserta = User::create([
+            'name' => 'dr. Andika Pratama, S.Ked',
+            'email' => 'peserta@fkik.ac.id',
+            'password' => Hash::make('password'),
+            'study_program_id' => $prodiDokter->id,
+        ]);
+        $userPeserta->assignRole('Peserta');
+
+        OathCandidate::create([
+            'period_id' => $periodDokter->id,
+            'user_id' => $userPeserta->id,
+            'nim' => 'I1011191001',
+            'nik' => '6171010101980001',
+            'full_name' => 'dr. Andika Pratama, S.Ked',
+            'birth_place' => 'Pontianak',
+            'birth_date' => '1998-01-01',
+            'father_name' => 'Bambang Pratama',
+            'mother_name' => 'Siti Aminah',
+            'admission_path' => 'SNBP/SNMPTN',
+            'religion' => 'Islam',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        OathCandidate::create([
+            'period_id' => $periodDokter->id,
+            'user_id' => null,
+            'nim' => 'I1011191002',
+            'nik' => '6171010202980002',
+            'full_name' => 'dr. Maria Fransiska, S.Ked',
+            'birth_place' => 'Singkawang',
+            'birth_date' => '1998-02-02',
+            'father_name' => 'Fransiskus',
+            'mother_name' => 'Theresia',
+            'admission_path' => 'SNBT/SBMPTN',
+            'religion' => 'Katolik',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        // 6. Create Photographer
+        Photographer::create([
+            'period_id' => $periodDokter->id,
+            'name' => 'Budi Santoso',
+            'agency_name' => 'Pontianak Visual Studio',
+            'phone_number' => '081234567890',
+            'badge_code' => 'PHOTO-DR-2026-001',
+        ]);
     }
 }

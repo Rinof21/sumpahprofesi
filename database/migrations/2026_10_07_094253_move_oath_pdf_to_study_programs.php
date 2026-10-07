@@ -15,9 +15,11 @@ return new class extends Migration
             $table->string('oath_pdf_path')->nullable()->after('organization');
         });
 
-        Schema::table('oath_periods', function (Blueprint $table) {
-            $table->dropColumn('oath_pdf_path');
-        });
+        if (Schema::hasColumn('oath_periods', 'oath_pdf_path')) {
+            Schema::table('oath_periods', function (Blueprint $table) {
+                $table->dropColumn('oath_pdf_path');
+            });
+        }
     }
 
     /**

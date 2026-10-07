@@ -382,7 +382,7 @@ GET    /superadmin/dashboard            SuperadminController@dashboard         [
 GET    /superadmin/study-programs       SuperadminController@studyPrograms     [name: superadmin.study-programs.index]
 POST   /superadmin/study-programs       SuperadminController@storeStudyProgram [name: superadmin.study-programs.store]
 GET    /superadmin/it-contacts          SuperadminController@itContacts        [name: superadmin.it-contacts.index]
-POST   /superadmin/it-contacts        SuperadminController@storeITContact    [name: superadmin.it-contacts.store]
+POST   /superadmin/it-contacts          SuperadminController@storeITContact    [name: superadmin.it-contacts.store]
 PATCH  /superadmin/it-contacts/{id}/toggle SuperadminController@toggleITContact [name: superadmin.it-contacts.toggle]
 GET    /superadmin/users                SuperadminController@users             [name: superadmin.users.index]
 POST   /superadmin/users                SuperadminController@storeUser         [name: superadmin.users.store]
