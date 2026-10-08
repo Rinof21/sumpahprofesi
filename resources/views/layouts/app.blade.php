@@ -36,6 +36,19 @@
         body {
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
+        aside::-webkit-scrollbar {
+            width: 5px;
+        }
+        aside::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        aside::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
     </style>
 </head>
 <body class="h-full bg-[#f8f9fc] text-gray-800 antialiased flex flex-col min-h-screen">
@@ -173,13 +186,12 @@
         </div>
     </aside>
 
-    <div class="flex flex-1 min-h-screen">
+    <div class="flex flex-1 min-h-screen w-full">
         
-        <!-- Desktop SB Admin 2 Sidebar (Stretches Full Height to Bottom) -->
-        <aside class="w-64 bg-gradient-to-b from-[#4e73df] to-[#224abe] text-white shrink-0 hidden md:flex md:flex-col self-stretch min-h-full shadow-lg">
-            
+        <!-- Desktop SB Admin 2 Sidebar (Fixed Full Height) -->
+        <aside class="w-64 bg-gradient-to-b from-[#4e73df] to-[#224abe] text-white shrink-0 hidden md:flex md:flex-col fixed top-0 bottom-0 left-0 z-20 shadow-lg overflow-y-auto">
             <!-- Sidebar Brand -->
-            <a href="{{ route('public.index') }}" class="h-16 flex items-center justify-center gap-3 px-4 border-b border-white/10 group">
+            <a href="{{ route('public.index') }}" class="h-16 flex items-center justify-center gap-3 px-4 border-b border-white/10 group shrink-0">
                 <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white font-extrabold text-lg group-hover:scale-110 transition-transform">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
@@ -189,7 +201,7 @@
             </a>
 
             <!-- Sidebar Navigation Menu -->
-            <div class="p-4 space-y-6">
+            <div class="p-4 space-y-6 flex-1">
                 
                 <!-- Section 1: PUBLIC PORTAL -->
                 <div>
@@ -252,7 +264,7 @@
                                 </a>
                                 <a href="{{ route('admin.candidates.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.candidates.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-user-check text-sm"></i>
-                                    <span>Validasi Candidates</span>
+                                    <span>Validasi Kandidat</span>
                                 </a>
                                 <a href="{{ route('admin.photographers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.photographers.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-camera text-sm"></i>
@@ -290,15 +302,14 @@
                         </div>
                     @endrole
                 @endauth
-
             </div>
         </aside>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <!-- Main Content Area with Left Padding for Fixed Sidebar -->
+        <div class="flex-1 flex flex-col min-w-0 md:pl-64 w-full">
             
             <!-- SB Admin 2 Topbar (White Bar with Shadow) -->
-            <header class="h-16 bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+            <header class="h-16 bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10 w-full">
                 
                 <!-- Mobile Toggle & Brand Header -->
                 <div class="flex items-center gap-3">
@@ -338,7 +349,7 @@
                                         </div>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded font-bold 
                                             @if($du->hasRole('Superadmin')) bg-red-100 text-red-700 
-                                            @elseif($du->hasRole('Admin Prodi')) bg-emerald-100 text-emerald-700 
+                                             @elseif($du->hasRole('Admin Prodi')) bg-emerald-100 text-emerald-700 
                                             @else bg-blue-100 text-blue-700 @endif">
                                             {{ $du->roles->first()?->name }}
                                         </span>
@@ -374,7 +385,7 @@
 
             <!-- Notification Toast Alerts -->
             @if(session('success'))
-                <div class="bg-emerald-50 border-b border-emerald-200 text-emerald-800 px-4 sm:px-6 py-3 shadow-sm" role="alert">
+                <div class="bg-emerald-50 border-b border-emerald-200 text-emerald-800 px-4 sm:px-6 py-3 shadow-sm w-full" role="alert">
                     <div class="max-w-7xl mx-auto flex items-center justify-between text-xs font-bold">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-check-circle text-emerald-600 text-sm"></i>
@@ -386,7 +397,7 @@
             @endif
 
             @if(session('error'))
-                <div class="bg-red-50 border-b border-red-200 text-red-800 px-4 sm:px-6 py-3 shadow-sm" role="alert">
+                <div class="bg-red-50 border-b border-red-200 text-red-800 px-4 sm:px-6 py-3 shadow-sm w-full" role="alert">
                     <div class="max-w-7xl mx-auto flex items-center justify-between text-xs font-bold">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-exclamation-triangle text-red-600 text-sm"></i>
@@ -398,7 +409,7 @@
             @endif
 
             <!-- Main Content Body -->
-            <main class="flex-grow p-4 sm:p-6 lg:p-8">
+            <main class="flex-grow p-4 sm:p-6 lg:p-8 w-full min-w-0">
                 @yield('content')
             </main>
 

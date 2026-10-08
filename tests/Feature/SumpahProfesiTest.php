@@ -332,5 +332,34 @@ class SumpahProfesiTest extends TestCase
         // Verify permanently deleted from database
         $this->assertDatabaseMissing('oath_periods', ['id' => $period->id]);
     }
+
+    public function test_admin_periods_page_renders_full_width_table_and_modal()
+    {
+        $adminUser = User::role('Admin Prodi')->first();
+        $this->actingAs($adminUser);
+
+        $response = $this->get(route('admin.periods.index'));
+        $response->assertStatus(200);
+
+        // Verify full-width table container & trigger buttons exist
+        $response->assertSee('Daftar Periode Sumpah & Akses Token', false);
+        $response->assertSee('modal-create-period');
+        $response->assertSee('modal-edit-period');
+        $response->assertSee("openModal('modal-create-period')", false);
+
+        // Verify storing period through POST works
+        $storeRes = $this->post(route('admin.periods.store'), [
+            'name' => 'Sumpah Dokter Periode Baru 2026',
+            'event_date' => '2026-11-20',
+            'quarter_code' => 'Q4',
+            'access_token' => 'TK-BARU2026',
+            'status' => 'draft',
+        ]);
+        $storeRes->assertRedirect(route('admin.periods.index'));
+        $this->assertDatabaseHas('oath_periods', [
+            'name' => 'Sumpah Dokter Periode Baru 2026',
+            'access_token' => 'TK-BARU2026',
+        ]);
+    }
 }
 
