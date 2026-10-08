@@ -127,33 +127,48 @@
 
 <!-- Modal Masukkan Token Akses Sumpah -->
 <div id="modal-enter-token" class="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden">
-        <div class="bg-[#4e73df] px-5 py-4 text-white flex items-center justify-between">
-            <h3 class="font-black text-sm uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-key"></i> Masukkan Token Akses Pendaftaran
-            </h3>
-            <button type="button" onclick="closeTokenModal()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-md w-full overflow-hidden transition-all">
+        <div class="bg-gradient-to-r from-[#4e73df] to-[#224abe] px-6 py-5 text-white flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-base font-bold shrink-0 shadow-xs">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-sm uppercase tracking-wider">Akses Pendaftaran Sumpah</h3>
+                    <p id="token-period-name-display" class="text-xs text-blue-100 font-bold mt-0.5 tracking-tight"></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeTokenModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition text-lg leading-none">&times;</button>
         </div>
 
-        <form action="{{ route('token-access.verify') }}" method="POST" class="p-5 space-y-4">
+        <form action="{{ route('token-access.verify') }}" method="POST" class="p-6 space-y-5">
             @csrf
             <input type="hidden" id="token-period-id" name="period_id">
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Periode Sumpah Terpilih</label>
-                <input type="text" id="token-period-name" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-xs font-bold text-gray-800">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-2 flex items-center justify-between">
+                    <span>Kode Token Akses <span class="text-red-500">*</span></span>
+                    <span class="text-[10px] font-normal text-gray-400 capitalize">Wajib diisi</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                    </div>
+                    <input type="text" id="token-input-field" name="access_token" required placeholder="Contoh: TK-DOKTER26" class="w-full pl-9 pr-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-mono font-bold text-[#4e73df] tracking-wider uppercase focus:ring-2 focus:ring-[#4e73df] focus:bg-white focus:border-[#4e73df] transition">
+                </div>
+                <p class="text-[11px] text-gray-500 mt-2 flex items-start gap-1.5 leading-tight">
+                    <i class="fa-solid fa-circle-info text-[#4e73df] mt-0.5 shrink-0 text-xs"></i>
+                    <span>Kode token diperoleh dari Panitia Program Studi atau Pengumuman Resmi Sumpah.</span>
+                </p>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kode Token Akses Mahasiswa <span class="text-red-500">*</span></label>
-                <input type="text" id="token-input-field" name="access_token" required placeholder="Masukkan Kode Token (Contoh: TK-DOKTER26)" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs font-mono font-bold text-[#4e73df] uppercase focus:ring-2 focus:ring-[#4e73df]">
-                <p class="text-[10px] text-gray-400 mt-1">Kode token rahasia ini diperoleh dari Panitia Admin Prodi / Surat Informasi Resmi.</p>
-            </div>
-
-            <div class="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
-                <button type="button" onclick="closeTokenModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-[#4e73df] hover:bg-[#2e59d9] text-white font-bold text-xs rounded shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Pendaftaran
+            <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeTokenModal()" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-[#4e73df] hover:bg-[#2e59d9] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Masuk Pendaftaran</span>
                 </button>
             </div>
         </form>
@@ -164,17 +179,43 @@
 <script>
     function openTokenModal(periodId, periodName) {
         document.getElementById('token-period-id').value = periodId;
-        document.getElementById('token-period-name').value = periodName;
-        document.getElementById('modal-enter-token').classList.remove('hidden');
+        const displayEl = document.getElementById('token-period-name-display');
+        if (displayEl) {
+            displayEl.textContent = periodName;
+        }
+        const modal = document.getElementById('modal-enter-token');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
         setTimeout(() => {
             const input = document.getElementById('token-input-field');
-            if (input) input.focus();
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
         }, 100);
     }
 
     function closeTokenModal() {
-        document.getElementById('modal-enter-token').classList.add('hidden');
+        const modal = document.getElementById('modal-enter-token');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
+
+    // Close on backdrop click
+    window.addEventListener('click', function(e) {
+        if (e.target.id === 'modal-enter-token') {
+            closeTokenModal();
+        }
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTokenModal();
+        }
+    });
 </script>
 @endpush
 @endsection
