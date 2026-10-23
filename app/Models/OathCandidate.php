@@ -9,6 +9,7 @@ class OathCandidate extends Model
 {
     protected $fillable = [
         'period_id',
+        'sort_order',
         'user_id',
         'nim',
         'nik',
@@ -29,6 +30,7 @@ class OathCandidate extends Model
     ];
 
     protected $casts = [
+        'sort_order' => 'integer',
         'birth_date' => 'date',
         'agreed_rules' => 'boolean',
         'agreed_at' => 'datetime',

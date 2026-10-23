@@ -48,12 +48,15 @@
                 <p class="text-xs text-gray-500">Tanggal Acara: <strong>{{ $activePeriod->event_date->format('d F Y') }}</strong> &bull; Siklus: <strong>{{ $activePeriod->quarter_code }}</strong></p>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2">
                 <a href="{{ route('admin.candidates.index') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded border border-gray-300">
                     <i class="fa-solid fa-users text-[#4e73df] mr-1"></i> Data Peserta ({{ $candidatesCount }})
                 </a>
-                <a href="{{ route('admin.photographers.index') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded border border-gray-300">
-                    <i class="fa-solid fa-camera text-emerald-600 mr-1"></i> Fotografer ({{ $photographersCount }}/3)
+                <a href="{{ route('admin.vendors.index') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded border border-gray-300">
+                    <i class="fa-solid fa-video text-emerald-600 mr-1"></i> Vendor & Streaming ({{ $totalVendorsCount }})
+                </a>
+                <a href="{{ route('admin.event-schedules.index') }}" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded border border-indigo-200">
+                    <i class="fa-solid fa-clipboard-list text-indigo-600 mr-1"></i> Susunan Acara & Tata Tertib
                 </a>
             </div>
         </div>
@@ -87,26 +90,39 @@
         </div>
     </div>
 
-    <!-- Photographer Quota Card (FR-E4 - Max 3) -->
+    <!-- Vendor Rekomendasi Card: Fotografer & Streaming Live Youtube -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col justify-between">
         <div>
             <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
                 <h3 class="text-xs font-black text-emerald-600 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-camera"></i> Kuota Fotografer Ruangan (Maks 3)
+                    <i class="fa-solid fa-video"></i> Rekomendasi Vendor & Live Streaming
                 </h3>
-                <span class="px-2 py-0.5 rounded text-xs font-black border
-                    @if($photographersCount >= 3) bg-red-100 text-red-700 border-red-200
-                    @else bg-emerald-100 text-emerald-700 border-emerald-200 @endif">
-                    {{ $photographersCount }} / 3 Kuota
+                <span class="px-2 py-0.5 rounded text-xs font-black border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    {{ $totalVendorsCount }} Vendor Rekomendasi
                 </span>
             </div>
-            <p class="text-xs text-gray-500 leading-relaxed mb-4">
-                Pendaftaran fotografer resmi ruangan dibatasi tepat maksimal 3 orang per periode. Pendaftaran ke-4 ditolak otomatis oleh transaksi database.
+            <p class="text-xs text-gray-500 leading-relaxed mb-3">
+                Kontak WA fotografer & jasa streaming YouTube terpercaya yang biasa disewa peserta. Disimpan permanen sebagai referensi rekomendasi untuk periode saat ini dan periode selanjutnya.
             </p>
+
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="p-2.5 rounded bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera text-emerald-600"></i> Fotografer
+                    </span>
+                    <span class="font-black text-xs text-emerald-800">{{ $photographerVendorsCount }} Vendor</span>
+                </div>
+                <div class="p-2.5 rounded bg-red-50/60 border border-red-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-red-900 flex items-center gap-1.5">
+                        <i class="fa-brands fa-youtube text-red-600"></i> Live Youtube
+                    </span>
+                    <span class="font-black text-xs text-red-800">{{ $streamingVendorsCount }} Jasa</span>
+                </div>
+            </div>
         </div>
 
-        <a href="{{ route('admin.photographers.index') }}" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded shadow-sm text-center flex items-center justify-center gap-2">
-            <i class="fa-solid fa-id-badge"></i> Kelola Fotografer & E-Badge
+        <a href="{{ route('admin.vendors.index') }}" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded shadow-sm text-center flex items-center justify-center gap-2 transition-colors">
+            <i class="fa-brands fa-whatsapp text-sm"></i> Kelola Kontak Vendor & Streaming WA
         </a>
     </div>
 

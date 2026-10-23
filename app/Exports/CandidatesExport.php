@@ -3,29 +3,36 @@
 namespace App\Exports;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class CandidatesExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithCustomStartCell, WithEvents
+class CandidatesExport implements FromCollection, ShouldAutoSize, WithCustomStartCell, WithEvents, WithHeadings, WithMapping
 {
     protected $candidates;
+
     protected string $periodName;
+
     protected string $eventDate;
+
     protected int $rowNumber = 0;
 
     public function __construct(Collection $candidates, string $periodName = '', string $eventDate = '')
     {
         $this->candidates = $candidates;
         $this->periodName = $periodName;
-        $this->eventDate  = $eventDate;
+        $this->eventDate = $eventDate;
     }
 
-    public function collection(): \Illuminate\Support\Enumerable
+    public function collection(): Enumerable
     {
         return $this->candidates;
     }
@@ -41,10 +48,10 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping, Sho
         $this->rowNumber++;
 
         return [
-            $this->rowNumber,
+            $candidate->sort_order ?: $this->rowNumber,
             $candidate->full_name,
             $candidate->nim,
-            $candidate->birth_place . ', ' . $candidate->birth_date->format('d/m/Y'),
+            $candidate->birth_place.', '.$candidate->birth_date->format('d/m/Y'),
             $candidate->admission_path,
             $candidate->father_name,
             $candidate->mother_name,
@@ -74,24 +81,24 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping, Sho
                 $sheet->setCellValue('A1', 'DAFTAR PESERTA SUMPAH PROFESI');
                 $sheet->mergeCells('A1:G1');
                 $sheet->getStyle('A1')->applyFromArray([
-                    'font'      => ['bold' => true, 'size' => 14],
-                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+                    'font' => ['bold' => true, 'size' => 14],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
                 // Row 2: Period name
-                $sheet->setCellValue('A2', 'Periode: ' . $this->periodName);
+                $sheet->setCellValue('A2', 'Periode: '.$this->periodName);
                 $sheet->mergeCells('A2:G2');
                 $sheet->getStyle('A2')->applyFromArray([
-                    'font'      => ['bold' => true, 'size' => 11],
-                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+                    'font' => ['bold' => true, 'size' => 11],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
                 // Row 3: Event date
-                $sheet->setCellValue('A3', 'Tanggal Kegiatan: ' . $this->eventDate);
+                $sheet->setCellValue('A3', 'Tanggal Kegiatan: '.$this->eventDate);
                 $sheet->mergeCells('A3:G3');
                 $sheet->getStyle('A3')->applyFromArray([
-                    'font'      => ['size' => 10],
-                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+                    'font' => ['size' => 10],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
                 // Row 4: empty separator
@@ -99,9 +106,9 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping, Sho
 
                 // Style heading row (row 5)
                 $sheet->getStyle('A5:G5')->applyFromArray([
-                    'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                    'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'color' => ['argb' => 'FF4E73DF']],
-                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+                    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'color' => ['argb' => 'FF4E73DF']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
                 // Border around data
@@ -110,8 +117,8 @@ class CandidatesExport implements FromCollection, WithHeadings, WithMapping, Sho
                     $sheet->getStyle("A5:G{$lastRow}")->applyFromArray([
                         'borders' => [
                             'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                                'color'       => ['argb' => 'FFD1D5DB'],
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['argb' => 'FFD1D5DB'],
                             ],
                         ],
                     ]);

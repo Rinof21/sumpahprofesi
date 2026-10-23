@@ -112,14 +112,30 @@
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-gray-200">
         <div>
-            <h2 class="text-base font-black text-gray-900 flex items-center gap-2">
-                <i class="fa-solid fa-id-card text-[#4e73df]"></i> Biodata Peserta Sumpah Terdaftar
-            </h2>
+            <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-base font-black text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-[#4e73df]"></i> Biodata Peserta Sumpah Terdaftar
+                </h2>
+                @if($candidate->is_oath_coordinator)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-md text-[11px] font-black">
+                        <i class="fa-solid fa-star text-[10px]"></i> Koordinator Sumpah
+                    </span>
+                @endif
+                @if($candidate->is_speech_rep)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-200 rounded-md text-[11px] font-black">
+                        <i class="fa-solid fa-microphone text-[10px]"></i> Pembaca Pesan & Kesan
+                    </span>
+                @endif
+            </div>
             <p class="text-xs text-gray-500">Informasi resmi yang tersimpan untuk pencetakan ijazah & sertifikat sumpah.</p>
         </div>
 
-        @if(!$candidate->period->is_locked)
-            <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('token-access.portal') }}" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-users-gear"></i> Portal Bersama Mahasiswa
+            </a>
+
+            @if(!$candidate->period->is_locked)
                 <button type="button" onclick="openModal('modal-edit-biodata')" class="px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-800 border border-yellow-300 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5">
                     <i class="fa-solid fa-pen-to-square"></i> Edit Biodata
                 </button>
@@ -131,12 +147,12 @@
                         <i class="fa-solid fa-trash-can"></i> Hapus Pendaftaran
                     </button>
                 </form>
-            </div>
-        @else
-            <span class="px-3 py-1.5 bg-gray-100 text-gray-500 border border-gray-300 font-bold rounded-lg text-xs flex items-center gap-1 cursor-not-allowed" title="Perubahan data dikunci oleh Admin">
-                <i class="fa-solid fa-lock"></i> Edit & Hapus Dikunci
-            </span>
-        @endif
+            @else
+                <span class="px-3 py-1.5 bg-gray-100 text-gray-500 border border-gray-300 font-bold rounded-lg text-xs flex items-center gap-1 cursor-not-allowed" title="Perubahan data dikunci oleh Admin">
+                    <i class="fa-solid fa-lock"></i> Edit & Hapus Dikunci
+                </span>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
@@ -146,8 +162,8 @@
         </div>
 
         <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <div class="text-[10px] text-gray-400 font-bold uppercase">NIK KTP</div>
-            <div class="font-extrabold text-gray-900 text-sm mt-0.5">{{ $candidate->nik }}</div>
+            <div class="text-[10px] text-gray-400 font-bold uppercase">Jalur Masuk</div>
+            <div class="font-extrabold text-gray-900 text-sm mt-0.5">{{ $candidate->admission_path }}</div>
         </div>
 
         <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
@@ -182,16 +198,16 @@
     </div>
 </div>
 
-<!-- Section 2: Features Grid Cards (Lafal Sumpah, Google Drive PPT, e-Ticket) -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Section 2: Features Grid Cards (Lafal Sumpah, Upload PPT, e-Ticket, Susunan Acara & Tata Tertib) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
 
     <!-- Card 1: Naskah Lafal Sumpah Dalam Konten -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
         <div>
             <div class="w-10 h-10 rounded-lg bg-blue-100 text-[#4e73df] flex items-center justify-center text-lg font-bold mb-3">
                 <i class="fa-solid fa-scroll"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Naskah Lafal Sumpah</h3>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Naskah Lafal Sumpah</h3>
             <p class="text-xs text-gray-500 mb-4 leading-relaxed">
                 Teks naskah lafal sumpah resmi untuk Prodi <strong>{{ $candidate->period->studyProgram->name }}</strong> dan Agama <strong>{{ $candidate->religion }}</strong>.
             </p>
@@ -199,7 +215,7 @@
 
         @if($candidate->agreed_rules)
             <a href="{{ route('candidate.oath-script') }}" class="w-full py-2 bg-[#4e73df] hover:bg-[#2e59d9] text-white font-bold text-xs rounded shadow-sm text-center flex items-center justify-center gap-2">
-                <i class="fa-solid fa-scroll"></i> Buka Naskah Lafal Sumpah
+                <i class="fa-solid fa-scroll"></i> Buka Naskah Sumpah
             </a>
         @else
             <button disabled class="w-full py-2 bg-gray-200 text-gray-500 font-bold text-xs rounded cursor-not-allowed flex items-center justify-center gap-2">
@@ -209,26 +225,26 @@
     </div>
 
     <!-- Card 2: Link Google Drive Admin & Upload PPT -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
         <div>
             <div class="w-10 h-10 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center text-lg font-bold mb-3">
                 <i class="fa-solid fa-file-powerpoint"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Upload PPT & Google Drive</h3>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Upload PPT Profil</h3>
             <p class="text-xs text-gray-500 mb-3 leading-relaxed">
-                Unggah slide PPT profil (.ppt, .pptx, .pdf max 20MB) atau gunakan tautan Google Drive resmi panitia.
+                Unggah slide PPT profil (.ppt, .pptx, .pdf max 20MB) atau buka Google Drive panitia.
             </p>
 
             @if($candidate->period->drive_url)
-                <a href="{{ $candidate->period->drive_url }}" target="_blank" class="mb-3 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-xs flex items-center justify-between transition-colors">
-                    <span class="flex items-center gap-2"><i class="fa-brands fa-google-drive text-emerald-600 text-sm"></i> Buka Link Drive Admin</span>
+                <a href="{{ $candidate->period->drive_url }}" target="_blank" class="mb-3 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-bold text-[11px] flex items-center justify-between transition-colors">
+                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-google-drive text-emerald-600"></i> Link Drive Admin</span>
                     <i class="fa-solid fa-external-link text-[10px]"></i>
                 </a>
             @endif
 
             @if($candidate->ppt_file_path)
-                <div class="p-2 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold mb-3">
-                    <i class="fa-solid fa-check text-emerald-600"></i> Berkas PPT Berhasil Terunggah
+                <div class="p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold mb-3">
+                    <i class="fa-solid fa-check text-emerald-600"></i> File PPT Berhasil Diunggah
                 </div>
             @endif
         </div>
@@ -238,7 +254,7 @@
                 @csrf
                 <input type="file" name="ppt_file" required accept=".ppt,.pptx,.pdf" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                 <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs rounded shadow-sm flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-upload"></i> Unggah Berkas PPT
+                    <i class="fa-solid fa-upload"></i> Unggah File PPT
                 </button>
             </form>
         @else
@@ -249,14 +265,14 @@
     </div>
 
     <!-- Card 3: e-Ticket Undangan -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
         <div>
             <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold mb-3">
                 <i class="fa-solid fa-ticket-alt"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">e-Ticket Undangan</h3>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">e-Ticket Undangan</h3>
             <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-                Tiket digital akses ruang aula untuk keluarga, lengkap dengan QR Code verifikasi dan peringatan larangan balita.
+                Tiket digital akses ruang aula keluarga lengkap dengan barcode verifikasi resmi.
             </p>
         </div>
 
@@ -271,6 +287,111 @@
         @endif
     </div>
 
+    <!-- Card 4: Susunan Acara & Tata Tertib -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div>
+            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg font-bold mb-3">
+                <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Susunan Acara & Tata Tertib</h3>
+            <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                Rundown prosesi resmi ({{ $candidate->period->schedules->count() }} agenda) dan aturan tata tertib aula ({{ $candidate->period->rules->count() }} butir).
+            </p>
+        </div>
+
+        <a href="{{ route('candidate.event-schedule') }}" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded shadow-sm text-center flex items-center justify-center gap-2 transition-colors">
+            <i class="fa-solid fa-clipboard-check"></i> Buka Rundown & Aturan
+        </a>
+    </div>
+
+</div>
+
+<!-- Section 3: Overview Susunan Acara & Tata Tertib Langsung di Halaman Peserta -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-gray-200">
+        <div>
+            <h2 class="text-base font-black text-gray-900 flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-list text-[#4e73df]"></i> Susunan Acara & Tata Tertib Resmi
+            </h2>
+            <p class="text-xs text-gray-500">
+                Jadwal prosesi sumpah profesi dan tata tertib resmi untuk Periode <strong>{{ $candidate->period->name }}</strong> ({{ $candidate->period->event_date->translatedFormat('d F Y') }}).
+            </p>
+        </div>
+
+        <a href="{{ route('candidate.event-schedule') }}" class="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-print"></i> Cetak / Halaman Lengkap
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Left Column: Susunan Acara (Rundown) -->
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+            <h3 class="text-xs font-black text-[#4e73df] uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Susunan Acara (Rundown)</span>
+                <span class="text-[10px] text-gray-500 font-bold">{{ $candidate->period->schedules->count() }} Agenda</span>
+            </h3>
+
+            @if($candidate->period->schedules->isEmpty())
+                <div class="p-6 text-center text-gray-400 text-xs">
+                    <i class="fa-regular fa-calendar-xmark text-2xl text-gray-300 mb-1 block"></i>
+                    Belum ada susunan acara resmi yang diunggah oleh panitia.
+                </div>
+            @else
+                <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    @foreach($candidate->period->schedules as $index => $item)
+                        <div class="p-2.5 rounded-lg bg-white border border-gray-200 flex items-start gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-blue-50 text-[#4e73df] font-mono font-black text-[10px] border border-blue-200 shrink-0 mt-0.5">
+                                {{ $item->start_time }} {{ $item->end_time ? '- ' . $item->end_time : '' }}
+                            </span>
+                            <div class="flex-grow">
+                                <div class="font-bold text-xs text-gray-900 leading-snug">{{ $item->activity_name }}</div>
+                                @if($item->person_in_charge)
+                                    <div class="text-[11px] text-gray-600 mt-0.5"><i class="fa-solid fa-user-tie text-[9px] text-gray-400 mr-1"></i>{{ $item->person_in_charge }}</div>
+                                @endif
+                                @if($item->notes)
+                                    <div class="text-[10px] text-gray-400 mt-0.5">{{ $item->notes }}</div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <!-- Right Column: Tata Tertib Acara -->
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+            <h3 class="text-xs font-black text-emerald-700 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-alt"></i> Tata Tertib Resmi Aula</span>
+                <span class="text-[10px] text-gray-500 font-bold">{{ $candidate->period->rules->count() }} Butir Aturan</span>
+            </h3>
+
+            @if($candidate->period->rules->isEmpty())
+                <div class="p-6 text-center text-gray-400 text-xs">
+                    <i class="fa-solid fa-shield-halved text-2xl text-gray-300 mb-1 block"></i>
+                    Belum ada tata tertib resmi yang diunggah oleh panitia.
+                </div>
+            @else
+                <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    @foreach($candidate->period->rules as $rule)
+                        <div class="p-2.5 rounded-lg {{ $rule->is_strict ? 'bg-red-50/80 border-red-200' : 'bg-white border-gray-200' }} border">
+                            <div class="flex items-center gap-1.5 mb-1">
+                                <span class="font-extrabold text-xs {{ $rule->is_strict ? 'text-red-900' : 'text-gray-900' }}">{{ $rule->title }}</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold {{ $rule->is_strict ? 'bg-red-200 text-red-800' : 'bg-gray-100 text-gray-600' }}">{{ $rule->category }}</span>
+                                @if($rule->is_strict)
+                                    <span class="px-1.5 py-0.2 rounded bg-red-600 text-white text-[8px] font-black uppercase">Wajib</span>
+                                @endif
+                            </div>
+                            <p class="text-[11px] {{ $rule->is_strict ? 'text-red-950 font-medium' : 'text-gray-600' }} leading-relaxed">
+                                {{ $rule->description }}
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+    </div>
 </div>
 
 <!-- Section 3: Tampilan Lafal Sumpah Langsung Di Dalam Konten Dashboard -->
@@ -290,6 +411,90 @@
     </div>
 @endif
 
+<!-- Section: Rekomendasi Vendor Fotografer & Jasa Streaming Live YouTube -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-gray-200">
+        <div>
+            <h2 class="text-base font-black text-gray-900 flex items-center gap-2">
+                <i class="fa-solid fa-video text-emerald-600"></i> Rekomendasi Vendor Fotografer & Live Streaming YouTube
+            </h2>
+            <p class="text-xs text-gray-500">
+                Kontak rekomendasi panitia yang biasa disewa mahasiswa untuk dokumentasi & siaran langsung YouTube.
+            </p>
+        </div>
+        <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-black self-start sm:self-auto">
+            {{ $vendors->count() }} Mitra Rekomendasi
+        </span>
+    </div>
+
+    @if($vendors->isEmpty())
+        <div class="p-8 text-center text-gray-400 text-xs">
+            <i class="fa-solid fa-camera-slash text-2xl mb-2 block text-gray-300"></i>
+            Belum ada vendor yang terdaftar sebagai rekomendasi untuk periode ini.
+        </div>
+    @else
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach($vendors as $vendor)
+                <div class="p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:border-emerald-300 transition-all flex flex-col justify-between shadow-2xs">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            @if($vendor->category === 'live_streaming')
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-700 flex items-center gap-1">
+                                    <i class="fa-brands fa-youtube"></i> Live YouTube
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                                    <i class="fa-solid fa-camera"></i> Fotografer
+                                </span>
+                            @endif
+
+                            @if($vendor->price_estimate)
+                                <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    {{ $vendor->price_estimate }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <h3 class="font-black text-sm text-gray-900 leading-snug">{{ $vendor->name }}</h3>
+                        @if($vendor->contact_person)
+                            <p class="text-xs text-gray-500 font-semibold mt-0.5">PIC: {{ $vendor->contact_person }}</p>
+                        @endif
+
+                        @if($vendor->description)
+                            <p class="text-[11px] text-gray-600 mt-2 line-clamp-2 leading-relaxed">
+                                {{ $vendor->description }}
+                            </p>
+                        @endif
+
+                        <div class="flex items-center gap-3 pt-2 text-[11px]">
+                            @if($vendor->instagram_handle)
+                                <a href="https://instagram.com/{{ ltrim($vendor->instagram_handle, '@') }}" target="_blank" class="font-bold text-pink-600 hover:underline flex items-center gap-1">
+                                    <i class="fa-brands fa-instagram"></i>
+                                    <span>{{ $vendor->instagram_handle }}</span>
+                                </a>
+                            @endif
+
+                            @if($vendor->youtube_channel)
+                                <a href="{{ $vendor->youtube_channel }}" target="_blank" class="font-bold text-red-600 hover:underline flex items-center gap-1">
+                                    <i class="fa-brands fa-youtube"></i>
+                                    <span>YouTube</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-3 border-t border-gray-100">
+                        <a href="{{ $vendor->whatsapp_url }}" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg shadow-2xs flex items-center justify-center gap-1.5 transition-all">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>Chat WhatsApp Vendor</span>
+                        </a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</div>
+
 <!-- Modal Edit Biodata Peserta -->
 @if(!$candidate->period->is_locked)
 <div id="modal-edit-biodata" class="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
@@ -306,18 +511,13 @@
             @method('PUT')
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
+                <div class="sm:col-span-2">
                     <label class="block font-bold text-gray-700 uppercase mb-1">NIM</label>
                     <input type="text" name="nim" value="{{ old('nim', $candidate->nim) }}" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
                 </div>
 
-                <div>
-                    <label class="block font-bold text-gray-700 uppercase mb-1">NIK KTP</label>
-                    <input type="text" name="nik" value="{{ old('nik', $candidate->nik) }}" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
-                </div>
-
                 <div class="sm:col-span-2">
-                    <label class="block font-bold text-gray-700 uppercase mb-1">Nama Lengkap & Gelar</label>
+                    <label class="block font-bold text-gray-700 uppercase mb-1">Nama Lengkap</label>
                     <input type="text" name="full_name" value="{{ old('full_name', $candidate->full_name) }}" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
                 </div>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactPerson;
+use App\Models\DocumentationVendor;
 use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ class SuperadminController extends Controller
         $totalProdi = StudyProgram::count();
         $totalUsers = User::count();
         $totalITContacts = ContactPerson::whereNull('study_program_id')->count();
-        
+
         $prodis = StudyProgram::withCount('oathPeriods')->get();
 
         return view('superadmin.dashboard', compact('totalProdi', 'totalUsers', 'totalITContacts', 'prodis'));
@@ -29,6 +30,7 @@ class SuperadminController extends Controller
     public function studyPrograms(): View
     {
         $studyPrograms = StudyProgram::withCount(['oathPeriods', 'users'])->get();
+
         return view('superadmin.study-programs.index', compact('studyPrograms'));
     }
 
@@ -84,8 +86,125 @@ class SuperadminController extends Controller
 
     public function toggleITContact(ContactPerson $contact): RedirectResponse
     {
-        $contact->update(['is_active' => !$contact->is_active]);
+        $contact->update(['is_active' => ! $contact->is_active]);
+
         return redirect()->back()->with('success', 'Status kontak IT berhasil diperbarui.');
+    }
+
+    // --- DOCUMENTATION VENDOR & LIVE STREAMING (SUPERADMIN) ---
+    public function vendors(Request $request): View
+    {
+        $category = $request->get('category');
+        $prodiFilter = $request->get('study_program_id');
+
+        $query = DocumentationVendor::with('studyProgram');
+
+        if ($category && in_array($category, ['photographer', 'live_streaming'])) {
+            $query->where('category', $category);
+        }
+
+        if ($prodiFilter !== null && $prodiFilter !== '') {
+            if ($prodiFilter === 'global') {
+                $query->whereNull('study_program_id');
+            } else {
+                $query->where('study_program_id', $prodiFilter);
+            }
+        }
+
+        $vendors = $query->orderBy('sort_order')->orderBy('name')->get();
+
+        $photographerVendorsCount = DocumentationVendor::where('category', 'photographer')->count();
+        $streamingVendorsCount = DocumentationVendor::where('category', 'live_streaming')->count();
+        $studyPrograms = StudyProgram::all();
+
+        return view('admin.vendors.index', compact(
+            'vendors',
+            'category',
+            'prodiFilter',
+            'studyPrograms',
+            'photographerVendorsCount',
+            'streamingVendorsCount'
+        ));
+    }
+
+    public function storeVendor(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'category' => ['required', 'in:photographer,live_streaming'],
+            'name' => ['required', 'string', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'whatsapp_number' => ['required', 'string', 'max:50'],
+            'instagram_handle' => ['nullable', 'string', 'max:100'],
+            'youtube_channel' => ['nullable', 'string', 'max:255'],
+            'price_estimate' => ['nullable', 'string', 'max:150'],
+            'description' => ['nullable', 'string'],
+            'study_program_id' => ['nullable', 'exists:study_programs,id'],
+        ]);
+
+        DocumentationVendor::create([
+            'study_program_id' => $validated['study_program_id'] ?? null,
+            'category' => $validated['category'],
+            'name' => $validated['name'],
+            'contact_person' => $validated['contact_person'] ?? null,
+            'whatsapp_number' => $validated['whatsapp_number'],
+            'instagram_handle' => $validated['instagram_handle'] ?? null,
+            'youtube_channel' => $validated['youtube_channel'] ?? null,
+            'price_estimate' => $validated['price_estimate'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
+            'sort_order' => (DocumentationVendor::max('sort_order') ?? 0) + 1,
+        ]);
+
+        $label = $validated['category'] === 'live_streaming' ? 'Jasa Streaming Live Youtube' : 'Kontak Fotografer';
+
+        return redirect()->back()->with('success', "{$label} berhasil disimpan oleh Superadmin sebagai rekomendasi!");
+    }
+
+    public function updateVendor(Request $request, DocumentationVendor $vendor): RedirectResponse
+    {
+        $validated = $request->validate([
+            'category' => ['required', 'in:photographer,live_streaming'],
+            'name' => ['required', 'string', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'whatsapp_number' => ['required', 'string', 'max:50'],
+            'instagram_handle' => ['nullable', 'string', 'max:100'],
+            'youtube_channel' => ['nullable', 'string', 'max:255'],
+            'price_estimate' => ['nullable', 'string', 'max:150'],
+            'description' => ['nullable', 'string'],
+            'study_program_id' => ['nullable', 'exists:study_programs,id'],
+            'is_active' => ['nullable'],
+        ]);
+
+        $vendor->update([
+            'category' => $validated['category'],
+            'name' => $validated['name'],
+            'contact_person' => $validated['contact_person'] ?? null,
+            'whatsapp_number' => $validated['whatsapp_number'],
+            'instagram_handle' => $validated['instagram_handle'] ?? null,
+            'youtube_channel' => $validated['youtube_channel'] ?? null,
+            'price_estimate' => $validated['price_estimate'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'study_program_id' => $validated['study_program_id'] ?? null,
+            'is_active' => $request->has('is_active') ? (bool) $request->input('is_active') : $vendor->is_active,
+        ]);
+
+        return redirect()->back()->with('success', 'Data vendor berhasil diperbarui!');
+    }
+
+    public function destroyVendor(DocumentationVendor $vendor): RedirectResponse
+    {
+        $vendor->delete();
+
+        return redirect()->back()->with('success', 'Kontak vendor berhasil dihapus.');
+    }
+
+    public function toggleVendor(DocumentationVendor $vendor): RedirectResponse
+    {
+        $vendor->update(['is_active' => ! $vendor->is_active]);
+
+        $status = $vendor->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
+        return redirect()->back()->with('success', "Status vendor '{$vendor->name}' berhasil {$status}.");
     }
 
     // --- USER MANAGEMENT & SPATIE PERMISSIONS ---

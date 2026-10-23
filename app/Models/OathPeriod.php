@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OathPeriod extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'study_program_id',
         'name',
@@ -35,7 +36,7 @@ class OathPeriod extends Model
 
     public function candidates(): HasMany
     {
-        return $this->hasMany(OathCandidate::class, 'period_id');
+        return $this->hasMany(OathCandidate::class, 'period_id')->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
     }
 
     public function photographers(): HasMany
@@ -46,5 +47,15 @@ class OathPeriod extends Model
     public function eventPhotos(): HasMany
     {
         return $this->hasMany(EventPhoto::class, 'period_id')->orderBy('sort_order', 'asc');
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(EventSchedule::class, 'period_id')->orderBy('sort_order', 'asc')->orderBy('start_time', 'asc');
+    }
+
+    public function rules(): HasMany
+    {
+        return $this->hasMany(EventRule::class, 'period_id')->orderBy('sort_order', 'asc');
     }
 }

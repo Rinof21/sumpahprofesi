@@ -6,8 +6,8 @@
 <!-- Page Heading -->
 <div class="d-sm-flex items-center justify-between mb-6">
     <div>
-        <h1 class="text-2xl font-black text-gray-800 tracking-tight">Portal Sumpah Profesi Kesehatan Multi-Prodi</h1>
-        <p class="text-xs font-semibold text-gray-500">Fakultas Kedokteran dan Ilmu Kesehatan (FKIK) &bull; Dokter, Apoteker, Ners</p>
+        <h1 class="text-2xl font-black text-gray-800 tracking-tight">Portal Sumpah Profesi</h1>
+        <p class="text-xs font-semibold text-gray-500">Fakultas Kedokteran Universitas Tanjungpura</p>
     </div>
 </div>
 

@@ -93,9 +93,17 @@
                         <span>Portal Utama</span>
                     </a>
                     @if($hasVerifiedToken)
-                        <a href="{{ route('token-access.portal') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                        <a href="{{ route('token-access.portal') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.portal') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                             <i class="fa-solid fa-fw fa-key text-sm"></i>
                             <span>Pendaftaran</span>
+                        </a>
+                        <a href="{{ route('token-access.event-schedule') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.event-schedule') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                            <i class="fa-solid fa-fw fa-clipboard-list text-sm"></i>
+                            <span>Susunan Acara & Tata Tertib</span>
+                        </a>
+                        <a href="{{ route('token-access.oath-script') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.oath-script') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                            <i class="fa-solid fa-fw fa-scroll text-sm"></i>
+                            <span>Naskah Lafal Sumpah</span>
                         </a>
                     @endif
                     <a href="{{ route('public.helpdesk') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('public.helpdesk') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
@@ -127,6 +135,10 @@
                                 <i class="fa-solid fa-fw fa-phone-alt text-sm"></i>
                                 <span>Narahubung IT</span>
                             </a>
+                            <a href="{{ route('superadmin.vendors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('superadmin.vendors.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-video text-sm"></i>
+                                <span>Vendor & Streaming</span>
+                            </a>
                         </div>
                     </div>
                 @endrole
@@ -143,13 +155,17 @@
                                 <i class="fa-solid fa-fw fa-calendar-alt text-sm"></i>
                                 <span>Periode Sumpah</span>
                             </a>
+                            <a href="{{ route('admin.event-schedules.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.event-schedules.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-calendar-check text-sm"></i>
+                                <span>Susunan Acara & Tata Tertib</span>
+                            </a>
                             <a href="{{ route('admin.candidates.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.candidates.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                 <i class="fa-solid fa-fw fa-user-check text-sm"></i>
                                 <span>Validasi Candidates</span>
                             </a>
-                            <a href="{{ route('admin.photographers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.photographers.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
-                                <i class="fa-solid fa-fw fa-camera text-sm"></i>
-                                <span>Fotografer (Maks 3)</span>
+                            <a href="{{ route('admin.vendors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.vendors.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-video text-sm"></i>
+                                <span>Vendor & Streaming</span>
                             </a>
                             <a href="{{ route('admin.gallery.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.gallery.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                 <i class="fa-solid fa-fw fa-images text-sm"></i>
@@ -170,6 +186,10 @@
                             <a href="{{ route('candidate.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.dashboard') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                 <i class="fa-solid fa-fw fa-user-graduate text-sm"></i>
                                 <span>Dasbor Utama</span>
+                            </a>
+                            <a href="{{ route('candidate.event-schedule') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.event-schedule') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-clipboard-list text-sm"></i>
+                                <span>Susunan Acara & Tata Tertib</span>
                             </a>
                             <a href="{{ route('candidate.oath-script') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.oath-script') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                 <i class="fa-solid fa-fw fa-scroll text-sm"></i>
@@ -212,9 +232,17 @@
                             <span>Portal Utama</span>
                         </a>
                         @if($hasVerifiedToken)
-                            <a href="{{ route('token-access.portal') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                            <a href="{{ route('token-access.portal') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.portal') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                 <i class="fa-solid fa-fw fa-key text-sm"></i>
                                 <span>Pendaftaran</span>
+                            </a>
+                            <a href="{{ route('token-access.event-schedule') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.event-schedule') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-clipboard-list text-sm"></i>
+                                <span>Susunan Acara & Tata Tertib</span>
+                            </a>
+                            <a href="{{ route('token-access.oath-script') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('token-access.oath-script') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                <i class="fa-solid fa-fw fa-scroll text-sm"></i>
+                                <span>Naskah Lafal Sumpah</span>
                             </a>
                         @endif
                         <a href="{{ route('public.helpdesk') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('public.helpdesk') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
@@ -246,6 +274,10 @@
                                     <i class="fa-solid fa-fw fa-phone-alt text-sm"></i>
                                     <span>Narahubung IT</span>
                                 </a>
+                                <a href="{{ route('superadmin.vendors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('superadmin.vendors.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                    <i class="fa-solid fa-fw fa-video text-sm"></i>
+                                    <span>Vendor & Streaming</span>
+                                </a>
                             </div>
                         </div>
                     @endrole
@@ -262,13 +294,17 @@
                                     <i class="fa-solid fa-fw fa-calendar-alt text-sm"></i>
                                     <span>Periode Sumpah</span>
                                 </a>
+                                <a href="{{ route('admin.event-schedules.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.event-schedules.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                    <i class="fa-solid fa-fw fa-calendar-check text-sm"></i>
+                                    <span>Susunan Acara & Tata Tertib</span>
+                                </a>
                                 <a href="{{ route('admin.candidates.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.candidates.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-user-check text-sm"></i>
                                     <span>Validasi Kandidat</span>
                                 </a>
-                                <a href="{{ route('admin.photographers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.photographers.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
-                                    <i class="fa-solid fa-fw fa-camera text-sm"></i>
-                                    <span>Fotografer (Maks 3)</span>
+                                <a href="{{ route('admin.vendors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.vendors.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                    <i class="fa-solid fa-fw fa-video text-sm"></i>
+                                    <span>Vendor & Streaming</span>
                                 </a>
                                 <a href="{{ route('admin.gallery.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('admin.gallery.*') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-images text-sm"></i>
@@ -289,6 +325,10 @@
                                 <a href="{{ route('candidate.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.dashboard') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-user-graduate text-sm"></i>
                                     <span>Dasbor Utama</span>
+                                </a>
+                                <a href="{{ route('candidate.event-schedule') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.event-schedule') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
+                                    <i class="fa-solid fa-fw fa-clipboard-list text-sm"></i>
+                                    <span>Susunan Acara & Tata Tertib</span>
                                 </a>
                                 <a href="{{ route('candidate.oath-script') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all {{ request()->routeIs('candidate.oath-script') ? 'bg-white/20 text-white shadow-sm' : 'text-blue-100 hover:bg-white/10' }}">
                                     <i class="fa-solid fa-fw fa-scroll text-sm"></i>
@@ -435,7 +475,7 @@
                             <i class="fa-solid fa-headset"></i> Meja Bantuan
                         </a>
                         <span>&bull;</span>
-                        <span class="px-2 py-0.5 bg-blue-50 text-[#4e73df] rounded text-[10px] border border-blue-200 font-mono font-bold">Laravel 12 & Spatie</span>
+                        <span class="px-2 py-0.5 bg-blue-50 text-[#4e73df] rounded text-[10px] border border-blue-200 font-mono font-bold">rino.firmansyah</span>
                     </div>
                 </div>
             </footer>

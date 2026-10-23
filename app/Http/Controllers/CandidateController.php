@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactPerson;
+use App\Models\DocumentationVendor;
 use App\Models\OathCandidate;
 use App\Models\OathPeriod;
 use App\Models\StudyProgram;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\View\View;
 
 class CandidateController extends Controller
@@ -19,7 +20,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate) {
+        if (! $candidate) {
             // Find active period for user's prodi if available
             $activePeriod = OathPeriod::where('study_program_id', $user->study_program_id)
                 ->where('status', 'active')
@@ -45,13 +46,13 @@ class CandidateController extends Controller
                     }
                 }
             }
-            
+
             $studyPrograms = StudyProgram::all();
-            
+
             return view('candidate.register', compact('activePeriod', 'studyPrograms', 'isTokenVerified'));
         }
 
-        $candidate->load(['period.studyProgram']);
+        $candidate->load(['period.studyProgram', 'period.schedules', 'period.rules']);
 
         // Contacts for candidate's prodi + IT
         $itContacts = ContactPerson::whereNull('study_program_id')
@@ -64,7 +65,15 @@ class CandidateController extends Controller
             ->where('is_active', true)
             ->get();
 
-        return view('candidate.dashboard', compact('candidate', 'itContacts', 'adminContacts'));
+        $vendors = DocumentationVendor::active()
+            ->where(function ($q) use ($candidate) {
+                $q->whereNull('study_program_id')->orWhere('study_program_id', $candidate->period->study_program_id);
+            })
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('candidate.dashboard', compact('candidate', 'itContacts', 'adminContacts', 'vendors'));
     }
 
     public function registerStore(Request $request): RedirectResponse
@@ -75,7 +84,7 @@ class CandidateController extends Controller
             'period_id' => ['required', 'exists:oath_periods,id'],
             'access_token' => ['nullable', 'string'],
             'nim' => ['required', 'string', 'unique:oath_candidates,nim'],
-            'nik' => ['required', 'string'],
+            'nik' => ['nullable', 'string'],
             'full_name' => ['required', 'string'],
             'birth_place' => ['required', 'string'],
             'birth_date' => ['required', 'date'],
@@ -113,7 +122,7 @@ class CandidateController extends Controller
             }
         }
 
-        if (!$isTokenVerified) {
+        if (! $isTokenVerified) {
             if (empty($validated['access_token'])) {
                 return redirect()->back()->withInput()->with('error', 'Kode Token Akses Wajib Diisi!');
             }
@@ -128,14 +137,17 @@ class CandidateController extends Controller
                 'verified_period_id' => $period->id,
                 'verified_period_expires_at' => $expiresAt,
             ]);
-            \Illuminate\Support\Facades\Cookie::queue('verified_period_access', json_encode(['period_id' => $period->id, 'expires_at' => $expiresAt]), 60);
+            Cookie::queue('verified_period_access', json_encode(['period_id' => $period->id, 'expires_at' => $expiresAt]), 60);
         }
+
+        $sortOrder = ($period->candidates()->max('sort_order') ?? 0) + 1;
 
         $candidate = OathCandidate::create([
             'period_id' => $period->id,
+            'sort_order' => $sortOrder,
             'user_id' => $user->id,
             'nim' => $validated['nim'],
-            'nik' => $validated['nik'],
+            'nik' => $validated['nik'] ?? null,
             'full_name' => $validated['full_name'],
             'birth_place' => $validated['birth_place'],
             'birth_date' => $validated['birth_date'],
@@ -156,7 +168,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate) {
+        if (! $candidate) {
             return redirect()->route('candidate.dashboard');
         }
 
@@ -168,8 +180,8 @@ class CandidateController extends Controller
         }
 
         $validated = $request->validate([
-            'nim' => ['required', 'string', 'unique:oath_candidates,nim,' . $candidate->id],
-            'nik' => ['required', 'string'],
+            'nim' => ['required', 'string', 'unique:oath_candidates,nim,'.$candidate->id],
+            'nik' => ['nullable', 'string'],
             'full_name' => ['required', 'string'],
             'birth_place' => ['required', 'string'],
             'birth_date' => ['required', 'date'],
@@ -189,7 +201,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate) {
+        if (! $candidate) {
             return redirect()->route('candidate.dashboard');
         }
 
@@ -210,7 +222,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate) {
+        if (! $candidate) {
             return redirect()->route('candidate.dashboard');
         }
 
@@ -233,7 +245,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate || !$candidate->agreed_rules) {
+        if (! $candidate || ! $candidate->agreed_rules) {
             return redirect()->route('candidate.dashboard')->with('error', 'Anda wajib menyetujui Pakta Tata Tertib sebelum mengunduh naskah lafal sumpah.');
         }
 
@@ -247,7 +259,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate) {
+        if (! $candidate) {
             return redirect()->route('candidate.dashboard');
         }
 
@@ -273,12 +285,26 @@ class CandidateController extends Controller
         $user = Auth::user();
         $candidate = $user->candidate;
 
-        if (!$candidate || !$candidate->agreed_rules) {
+        if (! $candidate || ! $candidate->agreed_rules) {
             return redirect()->route('candidate.dashboard')->with('error', 'Akses e-Ticket dikunci! Anda belum menyetujui Komitmen Pakta Tata Tertib.');
         }
 
-        $candidate->load(['period.studyProgram']);
+        $candidate->load(['period.studyProgram', 'period.rules']);
 
         return view('candidate.e-ticket', compact('candidate'));
+    }
+
+    public function eventSchedule(): View|RedirectResponse
+    {
+        $user = Auth::user();
+        $candidate = $user->candidate;
+
+        if (! $candidate) {
+            return redirect()->route('candidate.dashboard');
+        }
+
+        $candidate->load(['period.studyProgram', 'period.schedules', 'period.rules']);
+
+        return view('candidate.event-schedule', compact('candidate'));
     }
 }

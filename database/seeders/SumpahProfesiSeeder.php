@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\ContactPerson;
-use App\Models\EventPhoto;
+use App\Models\DocumentationVendor;
+use App\Models\EventRule;
+use App\Models\EventSchedule;
 use App\Models\OathCandidate;
 use App\Models\OathPeriod;
 use App\Models\Photographer;
@@ -11,7 +13,6 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class SumpahProfesiSeeder extends Seeder
 {
@@ -169,6 +170,7 @@ class SumpahProfesiSeeder extends Seeder
 
         OathCandidate::create([
             'period_id' => $periodDokter->id,
+            'sort_order' => 1,
             'user_id' => $userPeserta->id,
             'nim' => 'I1011191001',
             'nik' => '6171010101980001',
@@ -185,6 +187,7 @@ class SumpahProfesiSeeder extends Seeder
 
         OathCandidate::create([
             'period_id' => $periodDokter->id,
+            'sort_order' => 2,
             'user_id' => null,
             'nim' => 'I1011191002',
             'nik' => '6171010202980002',
@@ -199,7 +202,130 @@ class SumpahProfesiSeeder extends Seeder
             'agreed_at' => now(),
         ]);
 
-        // 6. Create Photographer
+        // Candidates for Profesi Apoteker
+        OathCandidate::create([
+            'period_id' => $periodApoteker->id,
+            'sort_order' => 1,
+            'user_id' => null,
+            'nim' => 'I1021191001',
+            'nik' => '6171010303980001',
+            'full_name' => 'apt. Rian Hidayat, S.Farm',
+            'birth_place' => 'Pontianak',
+            'birth_date' => '1998-03-03',
+            'father_name' => 'Hidayatullah',
+            'mother_name' => 'Nurhayati',
+            'admission_path' => 'SNBP/SNMPTN',
+            'religion' => 'Islam',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        OathCandidate::create([
+            'period_id' => $periodApoteker->id,
+            'sort_order' => 2,
+            'user_id' => null,
+            'nim' => 'I1021191002',
+            'nik' => '6171010404980002',
+            'full_name' => 'apt. Sarah Novita, S.Farm',
+            'birth_place' => 'Ketapang',
+            'birth_date' => '1998-04-04',
+            'father_name' => 'Yohanes',
+            'mother_name' => 'Maria Magdalena',
+            'admission_path' => 'Mandiri',
+            'religion' => 'Protestan',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        // Candidates for Profesi Ners
+        OathCandidate::create([
+            'period_id' => $periodNers->id,
+            'sort_order' => 1,
+            'user_id' => null,
+            'nim' => 'I1031191001',
+            'nik' => '6171010505980001',
+            'full_name' => 'Ns. Dimas Wahyu Pratama, S.Kep',
+            'birth_place' => 'Sintang',
+            'birth_date' => '1998-05-05',
+            'father_name' => 'Wahyu Hidayat',
+            'mother_name' => 'Sulastri',
+            'admission_path' => 'SNBT/SBMPTN',
+            'religion' => 'Islam',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        OathCandidate::create([
+            'period_id' => $periodNers->id,
+            'sort_order' => 2,
+            'user_id' => null,
+            'nim' => 'I1031191002',
+            'nik' => '6171010606980002',
+            'full_name' => 'Ns. Christina Dewi, S.Kep',
+            'birth_place' => 'Sambas',
+            'birth_date' => '1998-06-06',
+            'father_name' => 'Petrus',
+            'mother_name' => 'Agustina',
+            'admission_path' => 'SNBP/SNMPTN',
+            'religion' => 'Katolik',
+            'agreed_rules' => true,
+            'agreed_at' => now(),
+        ]);
+
+        // 6. Create Documentation & Streaming Vendors (Rujukan Resmi Peserta)
+        DocumentationVendor::create([
+            'study_program_id' => $prodiDokter->id,
+            'category' => 'photographer',
+            'name' => 'Pontianak Visual Studio',
+            'contact_person' => 'Budi Santoso',
+            'whatsapp_number' => '081234567890',
+            'instagram_handle' => '@pontianakvisual',
+            'price_estimate' => 'Mulai Rp 500.000 / paket',
+            'description' => 'Langganan peserta Sumpah Dokter FK UNTAN. Menyediakan foto prosesi sakral, mini-studio background wisuda, & file hi-res cloud.',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        DocumentationVendor::create([
+            'study_program_id' => $prodiDokter->id,
+            'category' => 'photographer',
+            'name' => 'Lensa Khatulistiwa Photography',
+            'contact_person' => 'Reza Pratama',
+            'whatsapp_number' => '085298765432',
+            'instagram_handle' => '@lensakhatulistiwa',
+            'price_estimate' => 'Mulai Rp 650.000 / paket',
+            'description' => 'Spesialis foto wisudawan & keluarga. Bonus cetak frame 12R dan softcopy link Google Drive instan hari yang sama.',
+            'is_active' => true,
+            'sort_order' => 2,
+        ]);
+
+        DocumentationVendor::create([
+            'study_program_id' => $prodiDokter->id,
+            'category' => 'live_streaming',
+            'name' => 'Untan Live Stream Media',
+            'contact_person' => 'Andi Saputra',
+            'whatsapp_number' => '081345678901',
+            'youtube_channel' => 'https://youtube.com/@untanlive',
+            'price_estimate' => 'Mulai Rp 1.500.000 / prosesi',
+            'description' => 'Jasa live streaming YouTube multi-kamera HD, audio direct mixer aula, lower-third nama peserta & running text resmi.',
+            'is_active' => true,
+            'sort_order' => 3,
+        ]);
+
+        DocumentationVendor::create([
+            'study_program_id' => null, // Berlaku lintas prodi
+            'category' => 'live_streaming',
+            'name' => 'Khatulistiwa Broadcast Pro',
+            'contact_person' => 'Fajar Maulana',
+            'whatsapp_number' => '089612345678',
+            'youtube_channel' => 'https://youtube.com/@khatulistiwabroadcast',
+            'price_estimate' => 'Mulai Rp 2.000.000 / prosesi',
+            'description' => 'Broadcasting profesional prosesi sumpah & yudisium. Internet dedicated bonding 4G/Starlink anti-buffering dengan recording 4K.',
+            'is_active' => true,
+            'sort_order' => 4,
+        ]);
+
+        // Legacy Photographer (kept for table backward compatibility)
         Photographer::create([
             'period_id' => $periodDokter->id,
             'name' => 'Budi Santoso',
@@ -207,5 +333,30 @@ class SumpahProfesiSeeder extends Seeder
             'phone_number' => '081234567890',
             'badge_code' => 'PHOTO-DR-2026-001',
         ]);
+
+        // 7. Seed Susunan Acara (Rundown) Sesuai Spesifikasi Masing-Masing Prodi
+        // A. Profesi Dokter
+        foreach (EventSchedule::getDefaultTemplateForProdi('Dr') as $sched) {
+            $periodDokter->schedules()->create($sched);
+        }
+        foreach (EventRule::getDefaultTemplateForProdi('Dr') as $rul) {
+            $periodDokter->rules()->create($rul);
+        }
+
+        // B. Profesi Apoteker
+        foreach (EventSchedule::getDefaultTemplateForProdi('Apt') as $sched) {
+            $periodApoteker->schedules()->create($sched);
+        }
+        foreach (EventRule::getDefaultTemplateForProdi('Apt') as $rul) {
+            $periodApoteker->rules()->create($rul);
+        }
+
+        // C. Profesi Ners
+        foreach (EventSchedule::getDefaultTemplateForProdi('Ns') as $sched) {
+            $periodNers->schedules()->create($sched);
+        }
+        foreach (EventRule::getDefaultTemplateForProdi('Ns') as $rul) {
+            $periodNers->rules()->create($rul);
+        }
     }
 }

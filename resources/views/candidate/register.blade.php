@@ -62,18 +62,13 @@
                 @endif
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-gray-700 uppercase mb-1">NIM (Nomor Induk Mahasiswa)</label>
                         <input type="text" name="nim" required value="{{ old('nim') }}" placeholder="Contoh: 22010119001" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">NIK (Nomor Induk Kependudukan)</label>
-                        <input type="text" name="nik" required value="{{ old('nik') }}" placeholder="16 Digit NIK KTP" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
-                    </div>
-
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nama Lengkap & Gelar Akademik Terdahulu</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nama Lengkap</label>
                         <input type="text" name="full_name" required value="{{ old('full_name', Auth::user()->name) }}" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-900">
                     </div>
 

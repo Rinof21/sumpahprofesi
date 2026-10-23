@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicController::class, 'index'])->name('public.index');
 Route::get('/archive/{slug}', [PublicController::class, 'archiveDetail'])->name('public.archive-detail');
 Route::get('/helpdesk', [PublicController::class, 'helpdesk'])->name('public.helpdesk');
+Route::get('/susunan-acara', [PublicController::class, 'eventSchedule'])->name('public.event-schedule');
+Route::get('/lafal-sumpah', [PublicController::class, 'oathScript'])->name('public.oath-script');
 
 // Akses Mahasiswa Tanpa Login via Kode Token Akses Admin
 Route::prefix('pendaftaran-token')->as('token-access.')->group(function () {
@@ -24,7 +26,14 @@ Route::prefix('pendaftaran-token')->as('token-access.')->group(function () {
     Route::post('/verify', [TokenAccessController::class, 'verifyToken'])->name('verify');
     Route::post('/reset', [TokenAccessController::class, 'resetTokenSession'])->name('reset');
     Route::get('/portal', [TokenAccessController::class, 'portal'])->name('portal');
+    Route::get('/susunan-acara', [TokenAccessController::class, 'eventSchedule'])->name('event-schedule');
+    Route::get('/lafal-sumpah', [TokenAccessController::class, 'oathScript'])->name('oath-script');
     Route::post('/peserta', [TokenAccessController::class, 'storeCandidate'])->name('store');
+    Route::post('/peserta/reorder', [TokenAccessController::class, 'reorderCandidates'])->name('reorder');
+    Route::post('/peserta/assign-roles', [TokenAccessController::class, 'assignRoles'])->name('assign-roles');
+    Route::post('/peserta/{candidate}/speech-rep', [TokenAccessController::class, 'assignSpeechRep'])->name('speech-rep');
+    Route::post('/peserta/{candidate}/oath-coordinator', [TokenAccessController::class, 'assignOathCoordinator'])->name('oath-coordinator');
+    Route::post('/peserta/{candidate}/move', [TokenAccessController::class, 'moveCandidate'])->name('move');
     Route::put('/peserta/{candidate}', [TokenAccessController::class, 'updateCandidate'])->name('update');
     Route::delete('/peserta/{candidate}', [TokenAccessController::class, 'deleteCandidate'])->name('destroy');
     Route::post('/peserta/{candidate}/ppt', [TokenAccessController::class, 'uploadPpt'])->name('upload-ppt');
@@ -54,6 +63,7 @@ Route::middleware(['auth', 'role:Peserta'])->prefix('candidate')->as('candidate.
     Route::get('/oath-script', [CandidateController::class, 'oathScript'])->name('oath-script');
     Route::post('/upload-ppt', [CandidateController::class, 'uploadPpt'])->name('upload-ppt');
     Route::get('/e-ticket', [CandidateController::class, 'eTicket'])->name('e-ticket');
+    Route::get('/event-schedule', [CandidateController::class, 'eventSchedule'])->name('event-schedule');
 });
 
 /*
@@ -64,7 +74,7 @@ Route::middleware(['auth', 'role:Peserta'])->prefix('candidate')->as('candidate.
 Route::middleware(['auth', 'role:Admin Prodi'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [AdminProdiController::class, 'dashboard'])->name('dashboard');
     Route::post('/dashboard/oath-pdf', [AdminProdiController::class, 'updateOathPdf'])->name('dashboard.update-oath-pdf');
-    
+
     // Period Management
     Route::get('/periods', [AdminProdiController::class, 'periods'])->name('periods.index');
     Route::post('/periods', [AdminProdiController::class, 'storePeriod'])->name('periods.store');
@@ -75,24 +85,43 @@ Route::middleware(['auth', 'role:Admin Prodi'])->prefix('admin')->as('admin.')->
     Route::post('/periods/{id}/restore', [AdminProdiController::class, 'restorePeriod'])->name('periods.restore');
     Route::delete('/periods/{id}/force-delete', [AdminProdiController::class, 'forceDeletePeriod'])->name('periods.force-delete');
 
-    
+    // Susunan Acara & Tata Tertib Management
+    Route::get('/event-schedules', [AdminProdiController::class, 'eventSchedules'])->name('event-schedules.index');
+    Route::post('/event-schedules', [AdminProdiController::class, 'storeSchedule'])->name('event-schedules.store');
+    Route::put('/event-schedules/{schedule}', [AdminProdiController::class, 'updateSchedule'])->name('event-schedules.update');
+    Route::delete('/event-schedules/{schedule}', [AdminProdiController::class, 'destroySchedule'])->name('event-schedules.destroy');
+    Route::post('/event-schedules/load-template', [AdminProdiController::class, 'loadTemplate'])->name('event-schedules.load-template');
+
+    Route::post('/event-rules', [AdminProdiController::class, 'storeRule'])->name('event-rules.store');
+    Route::put('/event-rules/{rule}', [AdminProdiController::class, 'updateRule'])->name('event-rules.update');
+    Route::delete('/event-rules/{rule}', [AdminProdiController::class, 'destroyRule'])->name('event-rules.destroy');
+
     // Candidate & Cleric Recap
     Route::get('/candidates/export', [AdminProdiController::class, 'exportCandidates'])->name('candidates.export');
     Route::get('/candidates', [AdminProdiController::class, 'candidates'])->name('candidates.index');
+    Route::post('/candidates/reorder', [AdminProdiController::class, 'reorderCandidates'])->name('candidates.reorder');
+    Route::post('/candidates/{candidate}/move', [AdminProdiController::class, 'moveCandidate'])->name('candidates.move');
     Route::post('/candidates/{candidate}/speech-rep', [AdminProdiController::class, 'assignSpeechRep'])->name('candidates.speech-rep');
     Route::post('/candidates/{candidate}/oath-coordinator', [AdminProdiController::class, 'assignOathCoordinator'])->name('candidates.oath-coordinator');
-    
-    // Photographer Management (Max 3 Lock)
+
+    // Documentation Vendor & Live Streaming (Rujukan Berkelanjutan Lintas Periode)
+    Route::get('/vendors', [AdminProdiController::class, 'vendors'])->name('vendors.index');
+    Route::post('/vendors', [AdminProdiController::class, 'storeVendor'])->name('vendors.store');
+    Route::put('/vendors/{vendor}', [AdminProdiController::class, 'updateVendor'])->name('vendors.update');
+    Route::delete('/vendors/{vendor}', [AdminProdiController::class, 'destroyVendor'])->name('vendors.destroy');
+    Route::patch('/vendors/{vendor}/toggle', [AdminProdiController::class, 'toggleVendor'])->name('vendors.toggle');
+
+    // Photographer Legacy Routes (Retained for test compatibility)
     Route::get('/photographers', [AdminProdiController::class, 'photographers'])->name('photographers.index');
     Route::post('/photographers', [AdminProdiController::class, 'storePhotographer'])->name('photographers.store');
     Route::delete('/photographers/{photographer}', [AdminProdiController::class, 'destroyPhotographer'])->name('photographers.destroy');
     Route::get('/photographers/{photographer}/badge', [AdminProdiController::class, 'printBadge'])->name('photographers.badge');
-    
+
     // Contact Management
     Route::get('/contacts', [AdminProdiController::class, 'contacts'])->name('contacts.index');
     Route::post('/contacts', [AdminProdiController::class, 'storeContact'])->name('contacts.store');
     Route::patch('/contacts/{contact}/toggle', [AdminProdiController::class, 'toggleContact'])->name('contacts.toggle');
-    
+
     // Gallery & Archive Curation
     Route::get('/gallery', [AdminProdiController::class, 'gallery'])->name('gallery.index');
     Route::post('/gallery/photo', [AdminProdiController::class, 'storePhoto'])->name('gallery.store-photo');
@@ -107,16 +136,23 @@ Route::middleware(['auth', 'role:Admin Prodi'])->prefix('admin')->as('admin.')->
 */
 Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->as('superadmin.')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('dashboard');
-    
+
     // Master Study Programs
     Route::get('/study-programs', [SuperadminController::class, 'studyPrograms'])->name('study-programs.index');
     Route::post('/study-programs', [SuperadminController::class, 'storeStudyProgram'])->name('study-programs.store');
-    
+
     // IT Helpdesk Contacts
     Route::get('/it-contacts', [SuperadminController::class, 'itContacts'])->name('it-contacts.index');
     Route::post('/it-contacts', [SuperadminController::class, 'storeITContact'])->name('it-contacts.store');
     Route::patch('/it-contacts/{contact}/toggle', [SuperadminController::class, 'toggleITContact'])->name('it-contacts.toggle');
-    
+
+    // Documentation Vendor & Live Streaming (Superadmin)
+    Route::get('/vendors', [SuperadminController::class, 'vendors'])->name('vendors.index');
+    Route::post('/vendors', [SuperadminController::class, 'storeVendor'])->name('vendors.store');
+    Route::put('/vendors/{vendor}', [SuperadminController::class, 'updateVendor'])->name('vendors.update');
+    Route::delete('/vendors/{vendor}', [SuperadminController::class, 'destroyVendor'])->name('vendors.destroy');
+    Route::patch('/vendors/{vendor}/toggle', [SuperadminController::class, 'toggleVendor'])->name('vendors.toggle');
+
     // User & Spatie Role Management
     Route::get('/users', [SuperadminController::class, 'users'])->name('users.index');
     Route::post('/users', [SuperadminController::class, 'storeUser'])->name('users.store');

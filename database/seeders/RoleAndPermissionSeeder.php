@@ -31,7 +31,6 @@ class RoleAndPermissionSeeder extends Seeder
             'manage-prodi-contacts',
             'curate-gallery',
 
-           
         ];
 
         foreach ($permissions as $permission) {

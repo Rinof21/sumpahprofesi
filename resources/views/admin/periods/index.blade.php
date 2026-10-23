@@ -152,6 +152,10 @@
                             </td>
                             <td class="px-5 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('admin.event-schedules.index', ['period_id' => $p->id]) }}" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Kelola Susunan Acara & Tata Tertib">
+                                        <i class="fa-solid fa-clipboard-list"></i>
+                                        <span>Acara & Tertib</span>
+                                    </a>
                                     <button type="button" onclick="openEditPeriodModal('{{ $p->id }}', '{{ addslashes($p->name) }}', '{{ $p->event_date->format('Y-m-d') }}', '{{ $p->quarter_code }}', '{{ $p->access_token }}', '{{ addslashes($p->drive_url) }}', '{{ $p->status }}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Edit Periode Sumpah">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                         <span>Edit</span>

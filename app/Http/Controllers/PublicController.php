@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactPerson;
+use App\Models\DocumentationVendor;
 use App\Models\OathCandidate;
 use App\Models\OathPeriod;
 use App\Models\StudyProgram;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PublicController extends Controller
@@ -52,7 +55,7 @@ class PublicController extends Controller
 
         // Statistics
         $totalCandidates = $candidates->count();
-        
+
         $religionStats = $candidates->groupBy('religion')->map->count();
         $admissionStats = $candidates->groupBy('admission_path')->map->count();
 
@@ -81,6 +84,60 @@ class PublicController extends Controller
             ->where('is_active', true)
             ->get();
 
-        return view('public.helpdesk', compact('itContacts', 'prodiContacts'));
+        $photographerVendors = DocumentationVendor::active()
+            ->photographers()
+            ->with('studyProgram')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $streamingVendors = DocumentationVendor::active()
+            ->liveStreaming()
+            ->with('studyProgram')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('public.helpdesk', compact('itContacts', 'prodiContacts', 'photographerVendors', 'streamingVendors'));
+    }
+
+    public function eventSchedule(Request $request): RedirectResponse
+    {
+        $sessionPeriodId = session('verified_period_id');
+        $sessionExpiresAt = session('verified_period_expires_at');
+
+        if ($sessionPeriodId && $sessionExpiresAt && now()->timestamp < $sessionExpiresAt) {
+            return redirect()->route('token-access.event-schedule');
+        }
+
+        $cookieData = $request->cookie('verified_period_access');
+        if ($cookieData) {
+            $data = json_decode($cookieData, true);
+            if (is_array($data) && isset($data['period_id'], $data['expires_at']) && now()->timestamp < $data['expires_at']) {
+                return redirect()->route('token-access.event-schedule');
+            }
+        }
+
+        return redirect()->route('token-access.index')->with('info', 'Susunan acara dan tata tertib berbeda untuk setiap program studi. Silakan masukkan kode token periode prodi Anda terlebih dahulu.');
+    }
+
+    public function oathScript(Request $request): RedirectResponse
+    {
+        $sessionPeriodId = session('verified_period_id');
+        $sessionExpiresAt = session('verified_period_expires_at');
+
+        if ($sessionPeriodId && $sessionExpiresAt && now()->timestamp < $sessionExpiresAt) {
+            return redirect()->route('token-access.oath-script');
+        }
+
+        $cookieData = $request->cookie('verified_period_access');
+        if ($cookieData) {
+            $data = json_decode($cookieData, true);
+            if (is_array($data) && isset($data['period_id'], $data['expires_at']) && now()->timestamp < $data['expires_at']) {
+                return redirect()->route('token-access.oath-script');
+            }
+        }
+
+        return redirect()->route('token-access.index')->with('info', 'Naskah lafal sumpah berbeda untuk setiap program studi. Silakan masukkan kode token periode prodi Anda terlebih dahulu.');
     }
 }

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactPerson;
+use App\Models\DocumentationVendor;
 use App\Models\OathCandidate;
 use App\Models\OathPeriod;
-use App\Models\StudyProgram;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TokenAccessController extends Controller
@@ -36,12 +36,14 @@ class TokenAccessController extends Controller
                         'verified_period_id' => $data['period_id'],
                         'verified_period_expires_at' => $data['expires_at'],
                     ]);
+
                     return (int) $data['period_id'];
                 }
             }
         }
 
         session()->forget(['verified_period_id', 'verified_period_expires_at']);
+
         return null;
     }
 
@@ -110,6 +112,7 @@ class TokenAccessController extends Controller
     public function resetTokenSession(): RedirectResponse
     {
         $this->clearVerifiedTokenSession();
+
         return redirect()->route('token-access.index')->with('info', 'Sesi token berhasil direset. Silakan masukkan kode token periode yang baru.');
     }
 
@@ -117,12 +120,12 @@ class TokenAccessController extends Controller
     {
         $periodId = $this->getVerifiedPeriodId($request);
 
-        if (!$periodId) {
+        if (! $periodId) {
             return redirect()->route('token-access.index')->with('error', 'Sesi token telah berakhir (60 menit) atau belum dimasukkan. Silakan masukkan kode token akses.');
         }
 
-        $period = OathPeriod::with(['studyProgram', 'candidates' => function ($q) {
-            $q->orderBy('full_name', 'asc');
+        $period = OathPeriod::with(['studyProgram', 'schedules', 'rules', 'candidates' => function ($q) {
+            $q->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
         }])->findOrFail($periodId);
 
         $expiresAt = session('verified_period_expires_at');
@@ -138,7 +141,47 @@ class TokenAccessController extends Controller
             ->where('is_active', true)
             ->get();
 
-        return view('public.token-portal', compact('period', 'adminContacts', 'itContacts', 'remainingMinutes'));
+        $vendors = DocumentationVendor::active()
+            ->where(function ($q) use ($period) {
+                $q->whereNull('study_program_id')->orWhere('study_program_id', $period->study_program_id);
+            })
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('public.token-portal', compact('period', 'adminContacts', 'itContacts', 'vendors', 'remainingMinutes'));
+    }
+
+    public function eventSchedule(Request $request): View|RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+
+        if (! $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token telah berakhir (60 menit) atau belum dimasukkan. Silakan masukkan kode token akses.');
+        }
+
+        $period = OathPeriod::with(['studyProgram', 'schedules', 'rules'])->findOrFail($periodId);
+
+        $expiresAt = session('verified_period_expires_at');
+        $remainingMinutes = $expiresAt ? max(1, ceil(($expiresAt - now()->timestamp) / 60)) : 60;
+
+        return view('public.token-event-schedule', compact('period', 'remainingMinutes'));
+    }
+
+    public function oathScript(Request $request): View|RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+
+        if (! $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token telah berakhir (60 menit) atau belum dimasukkan. Silakan masukkan kode token akses.');
+        }
+
+        $period = OathPeriod::with('studyProgram')->findOrFail($periodId);
+
+        $expiresAt = session('verified_period_expires_at');
+        $remainingMinutes = $expiresAt ? max(1, ceil(($expiresAt - now()->timestamp) / 60)) : 60;
+
+        return view('public.token-oath-script', compact('period', 'remainingMinutes'));
     }
 
     public function storeCandidate(Request $request): RedirectResponse
@@ -146,7 +189,7 @@ class TokenAccessController extends Controller
         $periodId = $this->getVerifiedPeriodId($request);
         $period = OathPeriod::findOrFail($request->period_id);
 
-        if (!$periodId || $period->id != $periodId) {
+        if (! $periodId || $period->id != $periodId) {
             return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit). Silakan masukkan token kembali.');
         }
 
@@ -156,8 +199,9 @@ class TokenAccessController extends Controller
 
         $validated = $request->validate([
             'period_id' => ['required', 'exists:oath_periods,id'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
             'nim' => ['required', 'string', 'unique:oath_candidates,nim'],
-            'nik' => ['required', 'string'],
+            'nik' => ['nullable', 'string'],
             'full_name' => ['required', 'string'],
             'birth_place' => ['required', 'string'],
             'birth_date' => ['required', 'date'],
@@ -167,11 +211,26 @@ class TokenAccessController extends Controller
             'religion' => ['required', 'string'],
         ]);
 
+        $sortOrder = ! empty($validated['sort_order'])
+            ? (int) $validated['sort_order']
+            : (($period->candidates()->max('sort_order') ?? 0) + 1);
+
+        $isCoord = $request->boolean('is_oath_coordinator');
+        $isRep = $request->boolean('is_speech_rep');
+
+        if ($isCoord) {
+            OathCandidate::where('period_id', $period->id)->update(['is_oath_coordinator' => false]);
+        }
+        if ($isRep) {
+            OathCandidate::where('period_id', $period->id)->update(['is_speech_rep' => false]);
+        }
+
         OathCandidate::create([
             'period_id' => $period->id,
+            'sort_order' => $sortOrder,
             'user_id' => auth()->check() ? auth()->id() : null,
             'nim' => $validated['nim'],
-            'nik' => $validated['nik'],
+            'nik' => $validated['nik'] ?? null,
             'full_name' => $validated['full_name'],
             'birth_place' => $validated['birth_place'],
             'birth_date' => $validated['birth_date'],
@@ -181,15 +240,19 @@ class TokenAccessController extends Controller
             'religion' => $validated['religion'],
             'agreed_rules' => true,
             'agreed_at' => now(),
+            'is_oath_coordinator' => $isCoord,
+            'coordinator_notes' => $isCoord ? 'Koordinator Sumpah Resmi '.$period->name : null,
+            'is_speech_rep' => $isRep,
+            'speech_notes' => $isRep ? 'Perwakilan Pesan & Kesan Resmi '.$period->name : null,
         ]);
 
-        return redirect()->route('token-access.portal')->with('success', "Biodata peserta {$validated['full_name']} (NIM: {$validated['nim']}) berhasil ditambahkan!");
+        return redirect()->route('token-access.portal')->with('success', "Biodata peserta {$validated['full_name']} (NIM: {$validated['nim']}, No. Urut: {$sortOrder}) berhasil ditambahkan!");
     }
 
     public function updateCandidate(Request $request, OathCandidate $candidate): RedirectResponse
     {
         $periodId = $this->getVerifiedPeriodId($request);
-        if (!$periodId || $candidate->period_id != $periodId) {
+        if (! $periodId || $candidate->period_id != $periodId) {
             return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
         }
 
@@ -198,8 +261,9 @@ class TokenAccessController extends Controller
         }
 
         $validated = $request->validate([
-            'nim' => ['required', 'string', 'unique:oath_candidates,nim,' . $candidate->id],
-            'nik' => ['required', 'string'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
+            'nim' => ['required', 'string', 'unique:oath_candidates,nim,'.$candidate->id],
+            'nik' => ['nullable', 'string'],
             'full_name' => ['required', 'string'],
             'birth_place' => ['required', 'string'],
             'birth_date' => ['required', 'date'],
@@ -209,15 +273,112 @@ class TokenAccessController extends Controller
             'religion' => ['required', 'string'],
         ]);
 
-        $candidate->update($validated);
+        if ($request->has('is_oath_coordinator')) {
+            $isCoord = $request->boolean('is_oath_coordinator');
+            if ($isCoord) {
+                OathCandidate::where('period_id', $candidate->period_id)
+                    ->where('id', '!=', $candidate->id)
+                    ->update(['is_oath_coordinator' => false]);
+                $candidate->is_oath_coordinator = true;
+                $candidate->coordinator_notes = 'Koordinator Sumpah Resmi '.$candidate->period->name;
+            } else {
+                $candidate->is_oath_coordinator = false;
+            }
+        }
+
+        if ($request->has('is_speech_rep')) {
+            $isRep = $request->boolean('is_speech_rep');
+            if ($isRep) {
+                OathCandidate::where('period_id', $candidate->period_id)
+                    ->where('id', '!=', $candidate->id)
+                    ->update(['is_speech_rep' => false]);
+                $candidate->is_speech_rep = true;
+                $candidate->speech_notes = 'Perwakilan Pesan & Kesan Resmi '.$candidate->period->name;
+            } else {
+                $candidate->is_speech_rep = false;
+            }
+        }
+
+        $candidate->fill($validated);
+        $candidate->save();
 
         return redirect()->route('token-access.portal')->with('success', "Data peserta {$candidate->full_name} berhasil diperbarui!");
+    }
+
+    public function moveCandidate(Request $request, OathCandidate $candidate): RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+        if (! $periodId || $candidate->period_id != $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
+        }
+
+        if ($candidate->period && $candidate->period->is_locked) {
+            return redirect()->back()->with('error', 'Pendaftaran telah DIKUNCI oleh Admin Prodi. Urutan nomor peserta tidak dapat diubah.');
+        }
+
+        $direction = $request->input('direction', 'up');
+
+        // Fetch all candidates of this period ordered by sort_order, id
+        $candidates = OathCandidate::where('period_id', $candidate->period_id)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $currentIndex = $candidates->search(fn ($c) => $c->id === $candidate->id);
+
+        if ($currentIndex === false) {
+            return redirect()->route('token-access.portal');
+        }
+
+        $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+
+        if ($targetIndex >= 0 && $targetIndex < $candidates->count()) {
+            $targetCandidate = $candidates[$targetIndex];
+
+            // Normalize sort orders: assign 1, 2, 3... to all, but swap currentIndex with targetIndex
+            $candidates[$currentIndex] = $targetCandidate;
+            $candidates[$targetIndex] = $candidate;
+
+            foreach ($candidates->values() as $index => $c) {
+                $c->update(['sort_order' => $index + 1]);
+            }
+
+            return redirect()->route('token-access.portal')->with('success', "Urutan nomor peserta {$candidate->full_name} berhasil diubah!");
+        }
+
+        return redirect()->route('token-access.portal');
+    }
+
+    public function reorderCandidates(Request $request): RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+        if (! $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
+        }
+
+        $period = OathPeriod::findOrFail($periodId);
+        if ($period->is_locked) {
+            return redirect()->back()->with('error', 'Pendaftaran telah DIKUNCI oleh Admin Prodi. Urutan nomor peserta tidak dapat diubah.');
+        }
+
+        $validated = $request->validate([
+            'orders' => ['required', 'array'],
+            'orders.*' => ['required', 'integer', 'min:1'],
+        ]);
+
+        foreach ($validated['orders'] as $candidateId => $sortOrder) {
+            OathCandidate::where('id', $candidateId)
+                ->where('period_id', $periodId)
+                ->update(['sort_order' => (int) $sortOrder]);
+        }
+
+        return redirect()->route('token-access.portal')->with('success', 'Urutan nomor seluruh peserta berhasil disimpan!');
     }
 
     public function deleteCandidate(Request $request, OathCandidate $candidate): RedirectResponse
     {
         $periodId = $this->getVerifiedPeriodId($request);
-        if (!$periodId || $candidate->period_id != $periodId) {
+        if (! $periodId || $candidate->period_id != $periodId) {
             return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
         }
 
@@ -234,7 +395,7 @@ class TokenAccessController extends Controller
     public function uploadPpt(Request $request, OathCandidate $candidate): RedirectResponse
     {
         $periodId = $this->getVerifiedPeriodId($request);
-        if (!$periodId || $candidate->period_id != $periodId) {
+        if (! $periodId || $candidate->period_id != $periodId) {
             return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
         }
 
@@ -253,5 +414,114 @@ class TokenAccessController extends Controller
 
         return redirect()->route('token-access.portal')->with('success', "Slide PPT profil untuk {$candidate->full_name} berhasil diunggah!");
     }
-}
 
+    public function assignSpeechRep(Request $request, OathCandidate $candidate): RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+        if (! $periodId || $candidate->period_id != $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
+        }
+
+        if ($candidate->period && $candidate->period->is_locked) {
+            return redirect()->back()->with('error', 'Pendaftaran telah DIKUNCI oleh Admin Prodi. Penunjukan perwakilan tidak dapat diubah.');
+        }
+
+        $isCurrentlyRep = (bool) $candidate->is_speech_rep;
+
+        DB::transaction(function () use ($candidate, $isCurrentlyRep) {
+            OathCandidate::where('period_id', $candidate->period_id)
+                ->update(['is_speech_rep' => false]);
+
+            if (! $isCurrentlyRep) {
+                OathCandidate::where('id', $candidate->id)->update([
+                    'is_speech_rep' => true,
+                    'speech_notes' => 'Perwakilan Pesan & Kesan Resmi '.$candidate->period->name,
+                ]);
+            }
+        });
+
+        $message = $isCurrentlyRep
+            ? "Penunjukan {$candidate->full_name} sebagai pembaca Pesan & Kesan telah dibatalkan."
+            : "{$candidate->full_name} berhasil ditunjuk sebagai Pembaca Pesan & Kesan!";
+
+        return redirect()->route('token-access.portal')->with('success', $message);
+    }
+
+    public function assignOathCoordinator(Request $request, OathCandidate $candidate): RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+        if (! $periodId || $candidate->period_id != $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
+        }
+
+        if ($candidate->period && $candidate->period->is_locked) {
+            return redirect()->back()->with('error', 'Pendaftaran telah DIKUNCI oleh Admin Prodi. Penunjukan koordinator tidak dapat diubah.');
+        }
+
+        $isCurrentlyCoord = (bool) $candidate->is_oath_coordinator;
+
+        DB::transaction(function () use ($candidate, $isCurrentlyCoord) {
+            OathCandidate::where('period_id', $candidate->period_id)
+                ->update(['is_oath_coordinator' => false]);
+
+            if (! $isCurrentlyCoord) {
+                OathCandidate::where('id', $candidate->id)->update([
+                    'is_oath_coordinator' => true,
+                    'coordinator_notes' => 'Koordinator Sumpah Resmi '.$candidate->period->name,
+                ]);
+            }
+        });
+
+        $message = $isCurrentlyCoord
+            ? "Penunjukan {$candidate->full_name} sebagai Koordinator Sumpah telah dibatalkan."
+            : "{$candidate->full_name} berhasil ditunjuk sebagai Koordinator Sumpah Wisudawan!";
+
+        return redirect()->route('token-access.portal')->with('success', $message);
+    }
+
+    public function assignRoles(Request $request): RedirectResponse
+    {
+        $periodId = $this->getVerifiedPeriodId($request);
+        if (! $periodId) {
+            return redirect()->route('token-access.index')->with('error', 'Sesi token tidak valid atau telah berakhir (60 menit).');
+        }
+
+        $period = OathPeriod::findOrFail($periodId);
+        if ($period->is_locked) {
+            return redirect()->back()->with('error', 'Pendaftaran telah DIKUNCI oleh Admin Prodi. Penunjukan peran tidak dapat diubah.');
+        }
+
+        $validated = $request->validate([
+            'oath_coordinator_id' => ['nullable', 'exists:oath_candidates,id'],
+            'speech_rep_id' => ['nullable', 'exists:oath_candidates,id'],
+        ]);
+
+        DB::transaction(function () use ($period, $validated) {
+            OathCandidate::where('period_id', $period->id)
+                ->update([
+                    'is_oath_coordinator' => false,
+                    'is_speech_rep' => false,
+                ]);
+
+            if (! empty($validated['oath_coordinator_id'])) {
+                OathCandidate::where('id', $validated['oath_coordinator_id'])
+                    ->where('period_id', $period->id)
+                    ->update([
+                        'is_oath_coordinator' => true,
+                        'coordinator_notes' => 'Koordinator Sumpah Resmi '.$period->name,
+                    ]);
+            }
+
+            if (! empty($validated['speech_rep_id'])) {
+                OathCandidate::where('id', $validated['speech_rep_id'])
+                    ->where('period_id', $period->id)
+                    ->update([
+                        'is_speech_rep' => true,
+                        'speech_notes' => 'Perwakilan Pesan & Kesan Resmi '.$period->name,
+                    ]);
+            }
+        });
+
+        return redirect()->route('token-access.portal')->with('success', 'Penunjukan Koordinator Sumpah dan Pembaca Pesan & Kesan berhasil disimpan!');
+    }
+}

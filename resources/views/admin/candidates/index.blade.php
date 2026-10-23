@@ -84,7 +84,7 @@
         <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-700 uppercase font-bold border-b border-gray-200">
                 <tr>
-                    <th class="px-4 py-3 w-8 text-center">No.</th>
+                    <th class="px-4 py-3 w-20 text-center">No. Urut</th>
                     <th class="px-4 py-3">Nama & NIM</th>
                     <th class="px-4 py-3">Agama</th>
                     <th class="px-4 py-3">Jalur Masuk</th>
@@ -97,8 +97,38 @@
             <tbody class="divide-y divide-gray-200 text-gray-800">
                 @forelse($candidates as $i => $c)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-center text-[11px] font-black text-gray-400 w-8">
-                            {{ $candidates->firstItem() + $i }}
+                        <td class="px-4 py-3 text-center w-20">
+                            <div class="inline-flex items-center justify-center gap-1">
+                                <div class="flex flex-col gap-0.5">
+                                    @if(!$loop->first)
+                                        <form action="{{ route('admin.candidates.move', $c->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="direction" value="up">
+                                            <button type="submit" title="Naikkan Urutan (Ke Atas)" class="w-4 h-3 flex items-center justify-center bg-gray-100 hover:bg-[#4e73df] hover:text-white text-gray-500 rounded text-[7px] transition-colors">
+                                                <i class="fa-solid fa-chevron-up"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="w-4 h-3 block"></span>
+                                    @endif
+
+                                    @if(!$loop->last)
+                                        <form action="{{ route('admin.candidates.move', $c->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="direction" value="down">
+                                            <button type="submit" title="Turunkan Urutan (Ke Bawah)" class="w-4 h-3 flex items-center justify-center bg-gray-100 hover:bg-[#4e73df] hover:text-white text-gray-500 rounded text-[7px] transition-colors">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="w-4 h-3 block"></span>
+                                    @endif
+                                </div>
+
+                                <span class="w-6 h-6 rounded bg-blue-50 border border-blue-200 text-[#4e73df] font-black text-xs flex items-center justify-center">
+                                    {{ $c->sort_order ?: ($candidates->firstItem() + $i) }}
+                                </span>
+                            </div>
                         </td>
                         <td class="px-4 py-3 font-bold text-gray-900">
                             <div>{{ $c->full_name }}</div>
