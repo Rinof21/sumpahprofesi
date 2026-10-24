@@ -103,8 +103,16 @@ class AdminProdiController extends Controller
     public function periods(): View
     {
         $prodiId = $this->getAdminProdiId();
-        $periods = OathPeriod::withCount(['candidates', 'photographers'])
+
+        $activePeriods = OathPeriod::withCount(['candidates', 'photographers'])
             ->where('study_program_id', $prodiId)
+            ->whereIn('status', ['active', 'draft'])
+            ->orderBy('event_date', 'desc')
+            ->get();
+
+        $archivedPeriods = OathPeriod::withCount(['candidates', 'photographers'])
+            ->where('study_program_id', $prodiId)
+            ->where('status', 'archived')
             ->orderBy('event_date', 'desc')
             ->get();
 
@@ -114,7 +122,9 @@ class AdminProdiController extends Controller
             ->orderBy('deleted_at', 'desc')
             ->get();
 
-        return view('admin.periods.index', compact('periods', 'trashedPeriods'));
+        $periods = $activePeriods;
+
+        return view('admin.periods.index', compact('periods', 'activePeriods', 'archivedPeriods', 'trashedPeriods'));
     }
 
     public function destroyPeriod(OathPeriod $period): RedirectResponse

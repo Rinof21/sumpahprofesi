@@ -6,6 +6,7 @@ use App\Models\DocumentationVendor;
 use App\Models\OathCandidate;
 use App\Models\OathPeriod;
 use App\Models\Photographer;
+use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -353,6 +354,9 @@ class SumpahProfesiTest extends TestCase
 
         // Verify full-width table container & trigger buttons exist
         $response->assertSee('Daftar Periode Sumpah & Akses Token', false);
+        $response->assertSee('Periode Aktif');
+        $response->assertSee('Riwayat Periode Sebelumnya');
+        $response->assertDontSee('<button type="button" onclick="openModal(\'modal-create-period\')" class="px-4 py-2.5 bg-[#4e73df]', false);
         $response->assertSee('modal-create-period');
         $response->assertSee('modal-edit-period');
         $response->assertSee("openModal('modal-create-period')", false);
@@ -615,5 +619,91 @@ class SumpahProfesiTest extends TestCase
 
         // Verify Daftar Peserta table exists
         $response->assertSee('Daftar Peserta Sumpah');
+    }
+
+    public function test_superadmin_can_view_users_with_numbering_and_delete_user()
+    {
+        $superadmin = User::role('Superadmin')->first();
+
+        // Create a temporary user to test deletion
+        $tempUser = User::create([
+            'name' => 'User Hapus Test',
+            'email' => 'hapus.test@untan.ac.id',
+            'password' => bcrypt('password123'),
+        ]);
+        $tempUser->assignRole('Peserta');
+
+        // 1. Visit users list
+        $response = $this->actingAs($superadmin)->get(route('superadmin.users.index'));
+        $response->assertStatus(200);
+        $response->assertSee('No.');
+        $response->assertSee('Ubah Peran & Aksi', false);
+        $response->assertSee($tempUser->name);
+
+        // 2. Cannot delete self
+        $deleteSelfRes = $this->actingAs($superadmin)->delete(route('superadmin.users.destroy', $superadmin->id));
+        $deleteSelfRes->assertRedirect();
+        $deleteSelfRes->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $superadmin->id]);
+
+        // 3. Delete temporary user
+        $deleteRes = $this->actingAs($superadmin)->delete(route('superadmin.users.destroy', $tempUser->id));
+        $deleteRes->assertRedirect();
+        $deleteRes->assertSessionHas('success');
+        $this->assertDatabaseMissing('users', ['id' => $tempUser->id]);
+    }
+
+    public function test_superadmin_can_reset_user_password()
+    {
+        $superadmin = User::role('Superadmin')->first();
+        $adminProdi = User::role('Admin Prodi')->first();
+
+        // 1. Visit users list and see reset password button
+        $response = $this->actingAs($superadmin)->get(route('superadmin.users.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Reset Pass');
+        $response->assertSee('modal-reset-password');
+
+        // 2. Perform password reset
+        $resetRes = $this->actingAs($superadmin)->patch(route('superadmin.users.reset-password', $adminProdi->id), [
+            'password' => 'newpassword123',
+        ]);
+        $resetRes->assertRedirect();
+        $resetRes->assertSessionHas('success');
+
+        // 3. Verify user can authenticate with new password
+        $this->assertTrue(auth()->attempt([
+            'email' => $adminProdi->email,
+            'password' => 'newpassword123',
+        ]));
+    }
+
+    public function test_superadmin_can_view_study_programs_with_numbering_and_edit_study_program()
+    {
+        $superadmin = User::role('Superadmin')->first();
+        $prodi = StudyProgram::first();
+
+        // 1. Visit study programs page and verify No. and Edit button
+        $response = $this->actingAs($superadmin)->get(route('superadmin.study-programs.index'));
+        $response->assertStatus(200);
+        $response->assertSee('No.');
+        $response->assertSee('Edit');
+        $response->assertSee('modal-edit-prodi');
+
+        // 2. Edit study program
+        $updateRes = $this->actingAs($superadmin)->put(route('superadmin.study-programs.update', $prodi->id), [
+            'code' => $prodi->code,
+            'name' => $prodi->name.' Updated',
+            'degree_title' => $prodi->degree_title,
+            'organization' => 'Organisasi Baru',
+        ]);
+        $updateRes->assertRedirect();
+        $updateRes->assertSessionHas('success');
+
+        $this->assertDatabaseHas('study_programs', [
+            'id' => $prodi->id,
+            'name' => $prodi->name.' Updated',
+            'organization' => 'Organisasi Baru',
+        ]);
     }
 }

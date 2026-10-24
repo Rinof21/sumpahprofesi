@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -52,6 +53,26 @@ class SuperadminController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Program Studi baru berhasil ditambahkan!');
+    }
+
+    public function updateStudyProgram(Request $request, StudyProgram $studyProgram): RedirectResponse
+    {
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:10', Rule::unique('study_programs', 'code')->ignore($studyProgram->id)],
+            'name' => ['required', 'string', 'max:255'],
+            'degree_title' => ['required', 'string', 'max:50'],
+            'organization' => ['required', 'string', 'max:255'],
+        ]);
+
+        $studyProgram->update([
+            'code' => strtoupper($validated['code']),
+            'name' => $validated['name'],
+            'degree_title' => $validated['degree_title'],
+            'organization' => $validated['organization'],
+            'slug' => Str::slug($validated['name']),
+        ]);
+
+        return redirect()->back()->with('success', "Data Program Studi {$studyProgram->name} berhasil diperbarui!");
     }
 
     // --- IT HELPDESK CONTACTS (FR-F1) ---
@@ -250,5 +271,32 @@ class SuperadminController extends Controller
         $user->update(['study_program_id' => $validated['study_program_id']]);
 
         return redirect()->back()->with('success', 'Peran & Akses pengguna berhasil diperbarui.');
+    }
+
+    public function destroyUser(User $user): RedirectResponse
+    {
+        if (auth()->id() === $user->id) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        $name = $user->name;
+        $user->syncRoles([]);
+        $user->syncPermissions([]);
+        $user->delete();
+
+        return redirect()->back()->with('success', "Akun pengguna {$name} berhasil dihapus.");
+    }
+
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->back()->with('success', "Kata sandi untuk pengguna {$user->name} berhasil direset!");
     }
 }

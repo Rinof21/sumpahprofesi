@@ -3,20 +3,13 @@
 @section('title', 'Manajemen Periode Sumpah')
 
 @section('content')
-<!-- Page Header with Action Button -->
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <div>
-        <a href="{{ route('admin.dashboard') }}" class="text-xs font-bold text-[#4e73df] hover:underline flex items-center gap-1 mb-1">
-            <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
-        </a>
-        <h1 class="text-2xl font-black text-gray-800 tracking-tight">Manajemen Periode Sumpah, Token Akses & Lock Data</h1>
-        <p class="text-xs text-gray-500">Kelola periode aktif, buat Kode Token Akses untuk mahasiswa, cantumkan Link Google Drive, dan kunci/buka edit data peserta.</p>
-    </div>
-    <div class="flex-shrink-0">
-        <button type="button" onclick="openModal('modal-create-period')" class="px-4 py-2.5 bg-[#4e73df] hover:bg-[#2e59d9] text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 transition-all hover:shadow-md">
-            <i class="fa-solid fa-plus-circle text-sm"></i> Tambah Periode Baru
-        </button>
-    </div>
+<!-- Page Header -->
+<div class="mb-6">
+    <a href="{{ route('admin.dashboard') }}" class="text-xs font-bold text-[#4e73df] hover:underline flex items-center gap-1 mb-1">
+        <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+    </a>
+    <h1 class="text-2xl font-black text-gray-800 tracking-tight">Manajemen Periode Sumpah, Token Akses & Lock Data</h1>
+    <p class="text-xs text-gray-500">Kelola periode aktif, buat Kode Token Akses untuk mahasiswa, cantumkan Link Google Drive, dan kunci/buka edit data peserta.</p>
 </div>
 
 @if(session('success'))
@@ -55,7 +48,10 @@
         <!-- Tab Switcher and Add Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
             <button type="button" id="tab-btn-active" onclick="switchPeriodTab('active')" class="px-4 py-2 rounded-lg font-bold text-xs bg-[#4e73df] text-white shadow-xs flex items-center gap-1.5 transition-all">
-                <i class="fa-solid fa-folder-open"></i> Periode ({{ count($periods) }})
+                <i class="fa-solid fa-bolt text-amber-300"></i> Periode Aktif ({{ count($activePeriods) }})
+            </button>
+            <button type="button" id="tab-btn-history" onclick="switchPeriodTab('history')" class="px-4 py-2 rounded-lg font-bold text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-all">
+                <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Periode Sebelumnya ({{ count($archivedPeriods) }})
             </button>
             <button type="button" id="tab-btn-trash" onclick="switchPeriodTab('trash')" class="px-4 py-2 rounded-lg font-bold text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-all">
                 <i class="fa-solid fa-trash-can"></i> Trash / Sampah
@@ -85,7 +81,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-gray-700 bg-white">
-                    @forelse($periods as $i => $p)
+                    @forelse($activePeriods as $i => $p)
                         <tr class="hover:bg-blue-50/20 transition-colors">
                             <td class="px-4 py-4 text-center text-xs font-black text-gray-400">
                                 {{ $i + 1 }}
@@ -174,11 +170,133 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-5 py-12 text-center text-gray-400">
-                                <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3 text-lg">
-                                    <i class="fa-solid fa-calendar-xmark"></i>
+                                <div class="w-12 h-12 rounded-full bg-blue-50 text-[#4e73df] flex items-center justify-center mx-auto mb-3 text-lg">
+                                    <i class="fa-solid fa-calendar-check"></i>
                                 </div>
-                                <div class="font-bold text-gray-600 text-sm">Belum ada periode sumpah.</div>
-                                <p class="text-xs text-gray-400 mt-1">Silakan klik tombol "Tambah Periode Baru" di atas untuk membuat periode sumpah.</p>
+                                <div class="font-bold text-gray-600 text-sm">Tidak ada periode aktif saat ini.</div>
+                                <p class="text-xs text-gray-400 mt-1">Silakan klik tombol "+ Tambah Periode" di atas atau aktifkan kembali periode dari tab "Riwayat Periode Sebelumnya".</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB RIWAYAT PERIODE SEBELUMNYA (ARCHIVED) -->
+    <div id="view-history-periods" class="hidden p-0">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-gray-50/80 text-gray-600 uppercase font-extrabold border-b border-gray-200 tracking-wider text-[11px]">
+                    <tr>
+                        <th class="px-4 py-3.5 w-12 text-center">No.</th>
+                        <th class="px-5 py-3.5">Nama & Token Akses</th>
+                        <th class="px-5 py-3.5">Tanggal Pelaksanaan</th>
+                        <th class="px-5 py-3.5 text-center">Statistik Peserta</th>
+                        <th class="px-5 py-3.5">Status Periode</th>
+                        <th class="px-5 py-3.5">Kunci Data Peserta</th>
+                        <th class="px-5 py-3.5 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-gray-700 bg-white">
+                    @forelse($archivedPeriods as $i => $p)
+                        <tr class="hover:bg-gray-50/60 transition-colors">
+                            <td class="px-4 py-4 text-center text-xs font-black text-gray-400">
+                                {{ $i + 1 }}
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="font-black text-gray-900 text-sm tracking-tight">{{ $p->name }}</div>
+                                <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                                    <span onclick="copyToken('{{ $p->access_token }}')" class="px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-md font-mono font-bold text-[11px] tracking-wider cursor-pointer inline-flex items-center gap-1.5 transition-colors" title="Klik untuk menyalin token ke clipboard">
+                                        <i class="fa-solid fa-key text-[10px]"></i>
+                                        <span>{{ $p->access_token ?: 'TANPA TOKEN' }}</span>
+                                        <i class="fa-regular fa-copy text-[10px] text-gray-400"></i>
+                                    </span>
+                                    @if($p->drive_url)
+                                        <a href="{{ $p->drive_url }}" target="_blank" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md font-bold text-[11px] inline-flex items-center gap-1.5 transition-colors" title="Buka Link Google Drive Berkas/PPT">
+                                            <i class="fa-brands fa-google-drive text-emerald-600"></i>
+                                            <span>Folder Drive</span>
+                                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-500"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="font-bold text-gray-800 flex items-center gap-1.5">
+                                    <i class="fa-regular fa-calendar text-[#4e73df]"></i>
+                                    <span>{{ $p->event_date->format('d M Y') }}</span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 border border-gray-200 rounded text-[10px] font-bold">
+                                        {{ $p->quarter_code }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded-full font-bold text-xs">
+                                    <i class="fa-solid fa-users text-[11px]"></i>
+                                    <span>{{ $p->candidates_count }} Peserta</span>
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <form action="{{ route('admin.periods.update-status', $p->id) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select name="status" onchange="this.form.submit()" class="px-3 py-1.5 bg-gray-50 hover:bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#4e73df] focus:border-[#4e73df] transition-all cursor-pointer">
+                                        <option value="draft" {{ $p->status === 'draft' ? 'selected' : '' }}>Draft (Persiapan)</option>
+                                        <option value="active" {{ $p->status === 'active' ? 'selected' : '' }}>Active (Buka Pendaftaran)</option>
+                                        <option value="archived" {{ $p->status === 'archived' ? 'selected' : '' }}>Archived (Tutup/Selesai)</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="px-5 py-4">
+                                <form action="{{ route('admin.periods.toggle-lock', $p->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    @if($p->is_locked)
+                                        <button type="submit" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-extrabold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-2xs" title="Klik untuk membuka kunci edit data peserta">
+                                            <i class="fa-solid fa-lock text-red-600"></i> DIKUNCI (Locked)
+                                        </button>
+                                    @else
+                                        <button type="submit" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-extrabold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-2xs" title="Klik untuk mengunci pendaftaran & edit data peserta">
+                                            <i class="fa-solid fa-lock-open text-emerald-600"></i> DIBUKA (Editable)
+                                        </button>
+                                    @endif
+                                </form>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('public.archive-detail', $p->slug) }}" target="_blank" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#4e73df] border border-blue-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Buka Halaman Arsip Publik Lulusan">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        <span>Lihat Arsip</span>
+                                    </a>
+                                    <a href="{{ route('admin.event-schedules.index', ['period_id' => $p->id]) }}" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Kelola Susunan Acara & Tata Tertib">
+                                        <i class="fa-solid fa-clipboard-list"></i>
+                                        <span>Acara & Tertib</span>
+                                    </a>
+                                    <button type="button" onclick="openEditPeriodModal('{{ $p->id }}', '{{ addslashes($p->name) }}', '{{ $p->event_date->format('Y-m-d') }}', '{{ $p->quarter_code }}', '{{ $p->access_token }}', '{{ addslashes($p->drive_url) }}', '{{ $p->status }}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Edit Periode Sumpah">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        <span>Edit</span>
+                                    </button>
+                                    <form action="{{ route('admin.periods.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus periode ini?\n\nPeriode akan dipindahkan ke Trash (Sampah) dan dapat dipulihkan kapan saja.');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold rounded-lg text-xs transition-colors flex items-center gap-1" title="Hapus Periode (Soft Delete)">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-5 py-12 text-center text-gray-400">
+                                <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3 text-lg">
+                                    <i class="fa-solid fa-box-archive"></i>
+                                </div>
+                                <div class="font-bold text-gray-600 text-sm">Belum ada riwayat periode sumpah sebelumnya.</div>
+                                <p class="text-xs text-gray-400 mt-1">Periode yang berstatus Archived akan otomatis tersimpan rapi di tab ini.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -487,20 +605,34 @@
 
     function switchPeriodTab(tabName) {
         const activeView = document.getElementById('view-active-periods');
+        const historyView = document.getElementById('view-history-periods');
         const trashView = document.getElementById('view-trashed-periods');
+
         const activeBtn = document.getElementById('tab-btn-active');
+        const historyBtn = document.getElementById('tab-btn-history');
         const trashBtn = document.getElementById('tab-btn-trash');
 
-        if (tabName === 'active') {
-            activeView.classList.remove('hidden');
-            trashView.classList.add('hidden');
-            activeBtn.className = "px-3.5 py-2 rounded-lg font-bold text-xs bg-[#4e73df] text-white shadow-sm flex items-center gap-1.5 transition-all";
-            trashBtn.className = "px-3.5 py-2 rounded-lg font-bold text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-all";
-        } else {
-            activeView.classList.add('hidden');
+        const defaultBtnClass = "px-4 py-2 rounded-lg font-bold text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-all";
+        const activeBtnClass = "px-4 py-2 rounded-lg font-bold text-xs bg-[#4e73df] text-white shadow-xs flex items-center gap-1.5 transition-all";
+        const trashActiveBtnClass = "px-4 py-2 rounded-lg font-bold text-xs bg-red-600 text-white shadow-xs flex items-center gap-1.5 transition-all";
+
+        activeView.classList.add('hidden');
+        historyView.classList.add('hidden');
+        trashView.classList.add('hidden');
+
+        activeBtn.className = defaultBtnClass;
+        historyBtn.className = defaultBtnClass;
+        trashBtn.className = defaultBtnClass;
+
+        if (tabName === 'history') {
+            historyView.classList.remove('hidden');
+            historyBtn.className = activeBtnClass;
+        } else if (tabName === 'trash') {
             trashView.classList.remove('hidden');
-            activeBtn.className = "px-3.5 py-2 rounded-lg font-bold text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-all";
-            trashBtn.className = "px-3.5 py-2 rounded-lg font-bold text-xs bg-red-600 text-white shadow-sm flex items-center gap-1.5 transition-all";
+            trashBtn.className = trashActiveBtnClass;
+        } else {
+            activeView.classList.remove('hidden');
+            activeBtn.className = activeBtnClass;
         }
     }
 

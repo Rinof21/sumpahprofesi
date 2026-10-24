@@ -140,6 +140,7 @@ Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->as('supera
     // Master Study Programs
     Route::get('/study-programs', [SuperadminController::class, 'studyPrograms'])->name('study-programs.index');
     Route::post('/study-programs', [SuperadminController::class, 'storeStudyProgram'])->name('study-programs.store');
+    Route::put('/study-programs/{studyProgram}', [SuperadminController::class, 'updateStudyProgram'])->name('study-programs.update');
 
     // IT Helpdesk Contacts
     Route::get('/it-contacts', [SuperadminController::class, 'itContacts'])->name('it-contacts.index');
@@ -157,6 +158,8 @@ Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->as('supera
     Route::get('/users', [SuperadminController::class, 'users'])->name('users.index');
     Route::post('/users', [SuperadminController::class, 'storeUser'])->name('users.store');
     Route::patch('/users/{user}/role', [SuperadminController::class, 'updateUserRole'])->name('users.update-role');
+    Route::patch('/users/{user}/reset-password', [SuperadminController::class, 'resetPassword'])->name('users.reset-password');
+    Route::delete('/users/{user}', [SuperadminController::class, 'destroyUser'])->name('users.destroy');
 
     // Spatie Roles & Permissions CRUD Management
     Route::get('/roles-permissions', [RolePermissionController::class, 'index'])->name('roles-permissions.index');
