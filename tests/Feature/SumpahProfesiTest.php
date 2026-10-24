@@ -552,11 +552,14 @@ class SumpahProfesiTest extends TestCase
         ]);
         $verifyRes->assertRedirect(route('token-access.portal'));
 
-        // 2. View portal - verify UI triggers exist
+        // 2. View portal - verify UI triggers exist and redundant columns/buttons are removed
         $portalRes = $this->get(route('token-access.portal'));
         $portalRes->assertStatus(200);
         $portalRes->assertSee('Tunjuk Koordinator & Peran', false);
         $portalRes->assertSee('modal-assign-roles');
+        $portalRes->assertDontSee('Slide PPT Profil');
+        $portalRes->assertDontSee(route('token-access.oath-coordinator', $andika->id));
+        $portalRes->assertDontSee(route('token-access.speech-rep', $andika->id));
 
         // 3. Appoint Andika as Speech Representative
         $repRes = $this->post(route('token-access.speech-rep', $andika->id));
@@ -588,5 +591,29 @@ class SumpahProfesiTest extends TestCase
         $this->assertFalse((bool) $maria->fresh()->is_oath_coordinator);
         $this->assertTrue((bool) $maria->fresh()->is_speech_rep);
         $this->assertFalse((bool) $andika->fresh()->is_speech_rep);
+    }
+
+    public function test_public_archive_detail_displays_two_column_layout_and_pagination()
+    {
+        $period = OathPeriod::where('slug', 'sumpah-dokter-ke-63-wwrap')->first();
+        if (! $period) {
+            $period = OathPeriod::first();
+        }
+
+        $response = $this->get(route('public.archive-detail', $period->slug));
+        $response->assertStatus(200);
+
+        // Verify Sebaran Jalur Masuk exists
+        $response->assertSee('Sebaran Jalur Masuk Kuliah Lulusan');
+
+        // Verify Rekapitulasi Agama Peserta is removed
+        $response->assertDontSee('Rekapitulasi Agama Peserta (Persuratan Rohaniwan)');
+
+        // Verify Status column is removed
+        $response->assertDontSee('<th class="px-4 py-2.5 text-center">Status</th>', false);
+        $response->assertDontSee('Disumpah</span>', false);
+
+        // Verify Daftar Peserta table exists
+        $response->assertSee('Daftar Peserta Sumpah');
     }
 }

@@ -45,21 +45,22 @@ class PublicController extends Controller
 
     public function archiveDetail(string $slug): View
     {
-        $period = OathPeriod::with(['studyProgram', 'candidates' => function ($q) {
-            $q->orderBy('full_name', 'asc');
-        }, 'eventPhotos', 'photographers'])
+        $period = OathPeriod::with(['studyProgram', 'eventPhotos', 'photographers'])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $candidates = $period->candidates;
+        $allCandidates = $period->candidates()->get();
+        $totalCandidates = $allCandidates->count();
 
-        // Statistics
-        $totalCandidates = $candidates->count();
+        $religionStats = $allCandidates->groupBy('religion')->map->count();
+        $admissionStats = $allCandidates->groupBy('admission_path')->map->count();
 
-        $religionStats = $candidates->groupBy('religion')->map->count();
-        $admissionStats = $candidates->groupBy('admission_path')->map->count();
+        $speechRep = $allCandidates->firstWhere('is_speech_rep', true);
 
-        $speechRep = $candidates->firstWhere('is_speech_rep', true);
+        $candidates = $period->candidates()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('full_name', 'asc')
+            ->paginate(10);
 
         return view('public.archive-detail', compact(
             'period',

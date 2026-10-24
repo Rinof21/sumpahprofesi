@@ -48,41 +48,79 @@
     </div>
 @endif
 
-<!-- Statistics Grid (FR-G1 & FR-C2) -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+<!-- Main Content Grid (Col 8: Daftar Peserta, Col 4: Sebaran Jalur Masuk) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
     
-    <!-- Religion Distribution -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-        <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-hands-praying text-[#4e73df]"></i>
-            Rekapitulasi Agama Peserta (Persuratan Rohaniwan)
-        </h3>
-        <div class="space-y-3">
-            @foreach(['Islam', 'Protestan', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'] as $rel)
-                @php
-                    $count = $religionStats->get($rel, 0);
-                    $percentage = $totalCandidates > 0 ? round(($count / $totalCandidates) * 100) : 0;
-                @endphp
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="font-bold text-gray-700">{{ $rel }}</span>
-                        <span class="text-gray-500 font-semibold">{{ $count }} Peserta ({{ $percentage }}%)</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200">
-                        <div class="bg-[#4e73df] h-2 rounded-full transition-all" style="width: {{ $percentage }}%"></div>
-                    </div>
-                </div>
-            @endforeach
+    <!-- Kolom 1 (Col 8): Candidate List Table Section -->
+    <div class="lg:col-span-8 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 p-5 pb-3 border-b border-gray-100">
+            <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-users text-[#4e73df]"></i>
+                Daftar Peserta Sumpah & Calon Lulusan ({{ $totalCandidates }} Orang)
+            </h3>
+            <span class="px-2.5 py-0.5 rounded bg-blue-50 text-[#4e73df] border border-blue-200 text-[10px] font-bold">
+                Resmi Terdaftar
+            </span>
         </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-gray-600 uppercase font-bold border-b border-gray-200">
+                    <tr>
+                        <th class="px-3 py-2.5 w-12 text-center">No</th>
+                        <th class="px-4 py-2.5">NIM & Nama Lengkap</th>
+                        <th class="px-4 py-2.5">Jalur Masuk</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-gray-700">
+                    @forelse($candidates as $index => $c)
+                        <tr class="hover:bg-gray-50/80 transition-colors">
+                            <td class="px-3 py-3 text-center font-bold text-gray-500">
+                                {{ $candidates->firstItem() ? ($candidates->firstItem() + $index) : ($index + 1) }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-black text-gray-900 flex flex-wrap items-center gap-1.5">
+                                    <span>{{ $c->full_name }}</span>
+                                    @if($c->is_oath_coordinator)
+                                        <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-black border border-indigo-200" title="Koordinator Sumpah Wisudawan">
+                                            <i class="fa-solid fa-star text-[8px] mr-1"></i>Koordinator
+                                        </span>
+                                    @endif
+                                    @if($c->is_speech_rep)
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-black border border-amber-200" title="Perwakilan Pesan & Kesan Wisudawan">
+                                            <i class="fa-solid fa-microphone text-[8px] mr-1"></i>Perwakilan
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="text-[11px] font-mono text-[#4e73df] font-bold mt-0.5">NIM: {{ $c->nim }}</div>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">
+                                {{ $c->admission_path ?: '-' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-4 py-6 text-center text-gray-400 font-medium">Belum ada data peserta yang terdaftar untuk periode ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($candidates->hasPages())
+            <div class="p-3.5 bg-gray-50 border-t border-gray-200">
+                {{ $candidates->withQueryString()->links() }}
+            </div>
+        @endif
     </div>
 
-    <!-- Admission Path Breakdown -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+    <!-- Kolom 2 (Col 4): Sebaran Jalur Masuk Kuliah Lulusan -->
+    <div class="lg:col-span-4 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
         <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
             <i class="fa-solid fa-chart-pie text-emerald-600"></i>
             Sebaran Jalur Masuk Kuliah Lulusan
         </h3>
-        <div class="space-y-3">
+        <div class="space-y-3.5">
             @foreach(['SNBP/SNMPTN', 'SNBT/SBMPTN', 'Mandiri', 'Kerjasama/Afirmasi'] as $path)
                 @php
                     $count = $admissionStats->get($path, 0);
@@ -101,62 +139,6 @@
         </div>
     </div>
 
-</div>
-
-<!-- Candidate List Table Section -->
-<div class="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
-        <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-users text-[#4e73df]"></i>
-            Daftar Peserta Sumpah & Calon Lulusan ({{ $totalCandidates }} Orang)
-        </h3>
-        <span class="px-2.5 py-0.5 rounded bg-blue-50 text-[#4e73df] border border-blue-200 text-[10px] font-bold">
-            Resmi Terdaftar
-        </span>
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-            <thead class="bg-gray-50 text-gray-600 uppercase font-bold border-b border-gray-200">
-                <tr>
-                    <th class="px-3 py-2.5 w-10 text-center">No</th>
-                    <th class="px-4 py-2.5">NIM & Nama Lengkap</th>
-                    <th class="px-4 py-2.5">Jalur Masuk</th>
-                    <th class="px-4 py-2.5 text-center">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-gray-700">
-                @forelse($candidates as $index => $c)
-                    <tr class="hover:bg-gray-50/80 transition-colors">
-                        <td class="px-3 py-3 text-center font-bold text-gray-500">{{ $index + 1 }}</td>
-                        <td class="px-4 py-3">
-                            <div class="font-black text-gray-900 flex items-center gap-2">
-                                {{ $c->full_name }}
-                                @if($c->is_speech_rep)
-                                    <span class="px-2 py-0.5 bg-blue-100 text-[#4e73df] rounded text-[10px] font-black border border-blue-200" title="Perwakilan Pesan & Kesan Wisudawan">
-                                        <i class="fa-solid fa-microphone mr-1"></i>Perwakilan
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="text-[11px] font-mono text-[#4e73df] font-bold mt-0.5">NIM: {{ $c->nim }}</div>
-                        </td>
-                        <td class="px-4 py-3 font-semibold text-gray-800">
-                            {{ $c->admission_path ?: '-' }}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-extrabold text-[10px]">
-                                <i class="fa-solid fa-check-circle mr-1"></i>Disumpah
-                            </span>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-400 font-medium">Belum ada data peserta yang terdaftar untuk periode ini.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
 </div>
 
 <!-- YouTube Video Documentation (FR-G3) -->

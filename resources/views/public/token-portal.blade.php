@@ -77,14 +77,14 @@
                         <i class="fa-solid fa-users text-[#4e73df]"></i> Daftar Peserta Terdaftar ({{ $period->candidates->count() }} Mahasiswa)
                     </h2>
                     <p class="text-[11px] text-gray-500 font-semibold mt-0.5">
-                        Nomor urut dapat diatur naik/turun, serta peserta dapat menunjuk <strong>Koordinator Sumpah</strong> (<i class="fa-solid fa-star text-indigo-600 text-[10px]"></i>) dan <strong>Pembaca Pesan & Kesan</strong> (<i class="fa-solid fa-microphone text-amber-600 text-[10px]"></i>).
+                        Nomor urut dapat diatur naik/turun, serta peserta dapat menunjuk <strong>Koordinator Sumpah</strong> dan <strong>Pembaca Pesan & Kesan</strong> melalui tombol <em>Tunjuk Koordinator & Peran</em>.
                     </p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     @if(!$period->is_locked && $period->candidates->count() > 0)
                         <button type="button" onclick="openModal('modal-assign-roles')" class="px-3 py-2 sm:py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs">
-                            <i class="fa-solid fa-user-check text-xs"></i> Tunjuk Koordinator & Peran
+                            <i class="fa-solid fa-user-check text-xs"></i> Tunjuk Peran
                         </button>
                     @endif
 
@@ -148,24 +148,6 @@
 
                             @if(!$period->is_locked)
                                 <div class="flex items-center gap-1 shrink-0">
-                                    <form action="{{ route('token-access.oath-coordinator', $c->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" 
-                                            class="p-1.5 px-2 rounded-lg text-xs font-bold transition-all {{ $c->is_oath_coordinator ? 'bg-indigo-600 text-white shadow-xs' : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200' }}" 
-                                            title="{{ $c->is_oath_coordinator ? 'Koordinator Sumpah Terpilih (Klik untuk membatalkan)' : 'Tunjuk sebagai Koordinator Sumpah' }}">
-                                            <i class="fa-solid fa-star text-[10px]"></i>
-                                        </button>
-                                    </form>
-
-                                    <form action="{{ route('token-access.speech-rep', $c->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" 
-                                            class="p-1.5 px-2 rounded-lg text-xs font-bold transition-all {{ $c->is_speech_rep ? 'bg-amber-500 text-white shadow-xs' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200' }}" 
-                                            title="{{ $c->is_speech_rep ? 'Pembaca Pesan & Kesan Terpilih (Klik untuk membatalkan)' : 'Tunjuk sebagai Pembaca Pesan & Kesan' }}">
-                                            <i class="fa-solid fa-microphone text-[10px]"></i>
-                                        </button>
-                                    </form>
-
                                     <button type="button" onclick="openEditCandidateModal('{{ $c->id }}', '{{ addslashes($c->nim) }}', '{{ addslashes($c->full_name) }}', '{{ addslashes($c->birth_place) }}', '{{ $c->birth_date->format('Y-m-d') }}', '{{ addslashes($c->father_name) }}', '{{ addslashes($c->mother_name) }}', '{{ $c->admission_path }}', '{{ $c->religion }}', '{{ $c->sort_order ?: ($i + 1) }}', {{ $c->is_oath_coordinator ? 'true' : 'false' }}, {{ $c->is_speech_rep ? 'true' : 'false' }})" class="p-1.5 px-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-800 border border-yellow-300 font-bold rounded-lg text-xs transition-colors" title="Edit Biodata & Peran">
                                         <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                     </button>
@@ -221,25 +203,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Slide PPT Row -->
-                        <div class="flex items-center justify-between pt-1 text-xs">
-                            <div>
-                                @if($c->ppt_file_path)
-                                    <a href="{{ asset('storage/' . $c->ppt_file_path) }}" target="_blank" class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-bold text-[10px] inline-flex items-center gap-1 hover:underline">
-                                        <i class="fa-solid fa-file-powerpoint"></i> PPT Terunggah
-                                    </a>
-                                @else
-                                    <span class="text-gray-400 italic text-[11px]">Belum unggah slide</span>
-                                @endif
-                            </div>
-
-                            @if(!$period->is_locked)
-                                <button type="button" onclick="openPptModal('{{ $c->id }}', '{{ addslashes($c->full_name) }}')" class="px-2.5 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 rounded-md font-bold text-[11px] inline-flex items-center gap-1 transition-colors">
-                                    <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> {{ $c->ppt_file_path ? 'Ganti PPT' : '+ Upload PPT' }}
-                                </button>
-                            @endif
-                        </div>
                     </div>
                 @empty
                     <div class="p-6 text-center text-gray-400 border border-dashed border-gray-200 rounded-xl">
@@ -263,7 +226,6 @@
                             <th class="px-3 py-2.5">NIM & Nama Peserta</th>
                             <th class="px-3 py-2.5">Agama & TTL</th>
                             <th class="px-3 py-2.5">Orang Tua</th>
-                            <th class="px-3 py-2.5">Slide PPT Profil</th>
                             <th class="px-3 py-2.5 text-right">Aksi Data</th>
                         </tr>
                     </thead>
@@ -327,44 +289,9 @@
                                     <div>Ayah: <span class="font-semibold text-gray-800">{{ $c->father_name }}</span></div>
                                     <div>Ibu: <span class="font-semibold text-gray-800">{{ $c->mother_name }}</span></div>
                                 </td>
-                                <td class="px-3 py-3">
-                                    @if($c->ppt_file_path)
-                                        <a href="{{ asset('storage/' . $c->ppt_file_path) }}" target="_blank" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-bold text-[10px] inline-flex items-center gap-1 hover:underline">
-                                            <i class="fa-solid fa-file-powerpoint"></i> PPT Terunggah
-                                        </a>
-                                    @else
-                                        <span class="text-gray-400 italic text-[10px]">Belum unggah</span>
-                                    @endif
-
-                                    @if(!$period->is_locked)
-                                        <button type="button" onclick="openPptModal('{{ $c->id }}', '{{ addslashes($c->full_name) }}')" class="block mt-1 text-[10px] font-bold text-cyan-700 hover:underline">
-                                            + Upload PPT
-                                        </button>
-                                    @endif
-                                </td>
                                 <td class="px-3 py-3 text-right whitespace-nowrap">
                                     @if(!$period->is_locked)
                                         <div class="flex items-center justify-end gap-1">
-                                            <!-- Tunjuk Koordinator Sumpah -->
-                                            <form action="{{ route('token-access.oath-coordinator', $c->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" 
-                                                    class="p-1.5 rounded text-xs font-bold transition-all {{ $c->is_oath_coordinator ? 'bg-indigo-600 text-white shadow-xs' : 'bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 border border-indigo-200' }}" 
-                                                    title="{{ $c->is_oath_coordinator ? 'Koordinator Sumpah Terpilih (Klik untuk membatalkan)' : 'Tunjuk sebagai Koordinator Sumpah' }}">
-                                                    <i class="fa-solid fa-star text-[11px]"></i>
-                                                </button>
-                                            </form>
-
-                                            <!-- Tunjuk Pembaca Pesan & Kesan -->
-                                            <form action="{{ route('token-access.speech-rep', $c->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" 
-                                                    class="p-1.5 rounded text-xs font-bold transition-all {{ $c->is_speech_rep ? 'bg-amber-500 text-white shadow-xs' : 'bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-800 border border-amber-200' }}" 
-                                                    title="{{ $c->is_speech_rep ? 'Pembaca Pesan & Kesan Terpilih (Klik untuk membatalkan)' : 'Tunjuk sebagai Pembaca Pesan & Kesan' }}">
-                                                    <i class="fa-solid fa-microphone text-[11px]"></i>
-                                                </button>
-                                            </form>
-
                                             <button type="button" onclick="openEditCandidateModal('{{ $c->id }}', '{{ addslashes($c->nim) }}', '{{ addslashes($c->full_name) }}', '{{ addslashes($c->birth_place) }}', '{{ $c->birth_date->format('Y-m-d') }}', '{{ addslashes($c->father_name) }}', '{{ addslashes($c->mother_name) }}', '{{ $c->admission_path }}', '{{ $c->religion }}', '{{ $c->sort_order ?: ($i + 1) }}', {{ $c->is_oath_coordinator ? 'true' : 'false' }}, {{ $c->is_speech_rep ? 'true' : 'false' }})" class="p-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-800 border border-yellow-300 font-bold rounded text-xs transition-colors" title="Edit Biodata & Peran">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
@@ -384,7 +311,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-3 py-8 text-center text-gray-400 font-medium">
+                                <td colspan="5" class="px-3 py-8 text-center text-gray-400 font-medium">
                                     <div class="max-w-xs mx-auto py-3">
                                         <i class="fa-solid fa-users text-3xl text-gray-300 mb-2 block"></i>
                                         <p class="text-xs text-gray-500 mb-2">Belum ada peserta yang mendaftar pada periode ini.</p>

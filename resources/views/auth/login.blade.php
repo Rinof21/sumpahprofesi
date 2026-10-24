@@ -8,7 +8,7 @@
         <div class="inline-flex p-3 rounded-2xl bg-[#4e73df] text-white font-black text-2xl shadow mb-2">
             <i class="fa-solid fa-graduation-cap"></i>
         </div>
-        <h2 class="text-2xl font-black text-gray-900 tracking-tight">Sumpah Profesi FKIK</h2>
+        <h2 class="text-2xl font-black text-gray-900 tracking-tight">Sumpah Profesi</h2>
         <p class="mt-1 text-xs font-semibold text-gray-500">Silakan masuk menggunakan akun Anda</p>
     </div>
 
